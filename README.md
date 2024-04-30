@@ -29,3 +29,7 @@ MIT
 ---
 
 Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+
+
+
+add transmit plist file to ios and json file/manifest for android
