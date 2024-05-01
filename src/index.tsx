@@ -61,13 +61,9 @@ export namespace TSIDOModule {
     token?: string | null;
   }
 
-  export interface JourneyError {
-
-  }
-
   export interface ResponseHandler {
     success: (results: TSIDOModule.ServiceResponse) => void;
-    error: (results: TSIDOModule.JourneyError) => void;
+    error: (results: TSIDOModule.JourneyErrorType) => void;
   }
 
   // Module API
