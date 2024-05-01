@@ -33,3 +33,4 @@ Made with [create-react-native-library](https://github.com/callstack/react-nativ
 
 
 add transmit plist file to ios and json file/manifest for android
+must set response handler

@@ -1,4 +1,4 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform, NativeEventEmitter } from 'react-native';
 
 const LINKING_ERROR =
   `The package 'react-native-ts-identity-orchestration' doesn't seem to be linked. Make sure: \n\n` +
@@ -17,6 +17,7 @@ const TsIdentityOrchestration = NativeModules.TsIdentityOrchestration
     }
   );
 
+const eventEmitter = new NativeEventEmitter(TsIdentityOrchestration);
 
 export namespace TSIDOModule {
 
@@ -89,10 +90,21 @@ export namespace TSIDOModule {
         - data: The client response data object. Mandatory in ClientInput response option type, populate with data for the Journey step to process. Optional in Cancel and Custom as an additional parameters for the branch.
       */
     submitClientResponse: (clientResponseOptionId: TSIDOModule.ClientResponseOptionType | string, data?: { [key: string]: any; } | null | undefined) => void;
+
+    /**
+      This method will expose a success and error handlers to your application.
+  
+      - Parameters:
+        - responseHandler : The response handler object with success and error callbacks.
+      */
+    setResponseHandler: (responseHandler: TSIDOModule.ResponseHandler) => void;
   }
 }
 
 class RNTSIdentityOrchestration implements TSIDOModule.API {
+
+  private responseHandler?: TSIDOModule.ResponseHandler;
+  private static kResponseHandlerEventname = "tsido_response_handler_event";
 
   initializeSDK = async (): Promise<boolean> => {
     return await TsIdentityOrchestration.initializeSDK();
@@ -109,5 +121,23 @@ class RNTSIdentityOrchestration implements TSIDOModule.API {
     TsIdentityOrchestration.submitClientResponse(clientResponseOptionId, data);
   }
 
+  setResponseHandler = (responseHandler: TSIDOModule.ResponseHandler): void => {
+    this.responseHandler = responseHandler;
+    eventEmitter.addListener(
+      RNTSIdentityOrchestration.kResponseHandlerEventname,
+      this.onResponseReceived
+    );
+  }
+
+  private onResponseReceived = async (params: any) => {
+    const success: boolean = params["success"];
+    const additionalData: { [key: string]: any } = params["additionalData"];
+
+    if (success) {
+      this.responseHandler?.success(additionalData);
+    } else {
+      this.responseHandler?.error(additionalData.errorCode);
+    }
+  }
 }
 export default new RNTSIdentityOrchestration();
