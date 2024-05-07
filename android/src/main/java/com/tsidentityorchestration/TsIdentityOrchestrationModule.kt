@@ -9,6 +9,7 @@ import com.facebook.react.bridge.WritableMap
 import com.transmit.idosdk.TSIdo
 import com.transmit.idosdk.TSIdoCallback
 import com.transmit.idosdk.TSIdoClientResponseOptionType
+import com.transmit.idosdk.TSIdoSdkError
 import com.transmit.idosdk.TSIdoServiceResponse
 import com.transmit.idosdk.TSIdoStartJourneyOptions
 
@@ -29,14 +30,32 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
 
   @ReactMethod
   fun startJourney(journeyId: String, startJourneyOptions: ReadableMap?, promise: Promise) {
-    TSIdo.startJourney(journeyId, convertStartJourneyOptions(startJourneyOptions))
+    TSIdo.startJourney(journeyId,
+      convertStartJourneyOptions(startJourneyOptions), object: TSIdoCallback<TSIdoServiceResponse>{
+        override fun idoSuccess(result: TSIdoServiceResponse) {
+          promise.resolve(true);
+        }
+
+        override fun idoError(error: TSIdoSdkError) {
+          promise.reject("Error during startJourney", error.toString());
+        }
+      })
   }
 
   @ReactMethod
   fun submitClientResponse(clientResponseOptionId: String, responseData: ReadableMap, promise: Promise) {
     TSIdo.submitClientResponse(
       clientResponseOptionId = convertResponseOptionId(clientResponseOptionId).toString(),
-      data = responseData as? Map<String, Any>
+      data = responseData as? Map<String, Any>,
+      object: TSIdoCallback<TSIdoServiceResponse>{
+        override fun idoSuccess(result: TSIdoServiceResponse) {
+          promise.resolve(true);
+        }
+
+        override fun idoError(error: TSIdoSdkError) {
+          promise.reject("Error during submitClientResponse", error.toString());
+        }
+      }
     )
   }
 
@@ -65,12 +84,4 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   companion object {
     const val NAME = "TsIdentityOrchestration"
   }
-}
-
-private fun TSIdo.submitClientResponse(clientResponseOptionId: String, data: Map<String, Any>?) {
-
-}
-
-private fun TSIdo.startJourney(journeyId: String, options: TSIdoStartJourneyOptions?) {
-
 }
