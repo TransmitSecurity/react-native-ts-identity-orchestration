@@ -126,9 +126,7 @@ extension TsIdentityOrchestration: TSIdoDelegate {
     }
     
     private func convertServiceResponse(_ response: TSIdoServiceResponse) -> [String: Any?] {
-        let options = response.clientResponseOptions
-        
-        var jsResponse: [String: Any?] = [
+        let jsResponse: [String: Any?] = [
             "data": response.data,
             "errorData": convertErrorData(response.errorData),
             "journeyStepId": idoJourneyStepIdToString(response.journeyStepId),
