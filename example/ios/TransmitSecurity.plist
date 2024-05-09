@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>credentials</key>
+	<dict>
+		<key>applicationId</key>
+		<string>hthredbs7h3xjkiswnni4</string>
+		<key>baseUrl</key>
+		<string>https://api.transmitsecurity.io/</string>
+		<key>clientId</key>
+		<string>dze7dotbinnv371tf0uibql6015gfpmt</string>
+	</dict>
+</dict>
+</plist>

@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { type StackNavigationProp } from '@react-navigation/stack';
-
+import idoService from '../services/ido-service';
 
 interface LoginScreenProps {
     navigation: StackNavigationProp<any,any>;
@@ -24,10 +24,17 @@ class LoginScreen extends React.Component<LoginScreenProps, LoginScreenState> {
     };
 
     private handleSubmit = () => {
-        // Handle submit logic here
-        console.log('Username:', this.state.username);
+        if (!this.state.username || this.state.username.length === 0) {
+            Alert.alert('Error', 'Please enter a username');
+            return;
+        }
         this.props.navigation.navigate('AuthenticatedUser', { username: this.state.username });
     };
+
+    componentDidMount(): void {
+        // Initialize the IDO service
+        idoService.setupService();
+    }
 
     render() {
         return (
@@ -48,7 +55,7 @@ class LoginScreen extends React.Component<LoginScreenProps, LoginScreenState> {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
     },
     input: {
