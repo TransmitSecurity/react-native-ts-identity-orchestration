@@ -27,10 +27,27 @@ export namespace TSIDOModule {
   }
 
   export const enum ClientResponseOptionType {
-    clientInput,
-    cancel,
-    fail,
-    resend
+    clientInput = "clientInput",
+    cancel = "cancel",
+    fail = "fail",
+    resend = "resend"
+  }
+
+  export enum JourneyActionType {
+    success = "success",
+    rejection = "rejection",
+    information = "information",
+    debugBreak = "debugBreak",
+    waitForAnotherDevice = "waitForAnotherDevice",
+    drsTriggerAction = "drsTriggerAction",
+    identityVerification = "identityVerification",
+    webAuthnRegistration = "webAuthnRegistration",
+    registerDeviceAction = "registerDeviceAction",
+    validateDeviceAction = "validateDeviceAction",
+    nativeBiometricsRegistration = "nativeBiometricsRegistration",
+    nativeBiometricsAuthenticaton = "nativeBiometricsAuthenticaton",
+    emailOTPAuthentication = "emailOTPAuthentication",
+    smsOTPAuthentication = "smsOTPAuthentication"
   }
 
   export const enum JourneyErrorType {
@@ -57,7 +74,7 @@ export namespace TSIDOModule {
   export interface ServiceResponse {
     data?: { [key: string]: any; } | null;
     errorData?: TSIDOModule.SDKError | null;
-    journeyStepId?: TSIDOModule.ClientResponseOptionType | string | null;
+    journeyStepId?: TSIDOModule.JourneyActionType | string | null;
     clientResponseOptions?: { [key: string]: TSIDOModule.ClientResponseOption; }
     token?: string | null;
   }

@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from './app/screens/LoginScreen';
 import AuthenticatedUserScreen from './app/screens/AuthenticatedUserScreen';
+import idoService from './app/services/ido-service';
 
 const Stack = createStackNavigator();
 
@@ -18,8 +19,8 @@ class App extends React.Component {
     this.state = {};
   }
 
-  componentDidMount() {
-
+  componentDidMount(): void {
+    this.setupIDOService();
   }
 
   render() {
@@ -48,15 +49,12 @@ class App extends React.Component {
     />
   );
 
+  // IDO Service
+
+  private setupIDOService = () => {
+    // Initialize the IDO service
+    idoService.setupService();
+  }
 }
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
 
 export default App;

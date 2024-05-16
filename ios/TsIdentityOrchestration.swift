@@ -16,8 +16,8 @@ class TsIdentityOrchestration: RCTEventEmitter {
                 guard let self = self else { return }
                 
                 do {
-                    TSIdo.delegate = self
                     try TSIdo.initializeSDK()
+                    TSIdo.delegate = self
                     resolve(true)
                 } catch {
                     reject(self.kTag, "Error during initializeSDK", error)
@@ -33,6 +33,7 @@ class TsIdentityOrchestration: RCTEventEmitter {
             
             runBlockOnMain { [weak self] in
                 guard let self = self else { return }
+
                 TSIdo.startJourney(
                     journeyId: journeyId,
                     options: self.convertStartJourneyOptions(startJourneyOptions)
@@ -49,6 +50,7 @@ class TsIdentityOrchestration: RCTEventEmitter {
             
             runBlockOnMain { [weak self] in
                 guard let self = self else { return }
+                
                 TSIdo.submitClientResponse(
                     clientResponseOptionId: self.convertResponseOptionId(clientResponseOptionId),
                     data: responseData as? [String : Any]
