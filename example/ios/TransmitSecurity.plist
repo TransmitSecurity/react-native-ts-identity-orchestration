@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>credentials</key>
+	<dict>
+		<key>baseUrl</key>
+		<string>https://portal.idsec-stg.com</string>
+		<key>applicationId</key>
+		<string>default_application</string>
+		<key>clientId</key>
+		<string>kopuzt57bio75ehx0tq3gdjq9e3mt5e4</string>
+	</dict>
+</dict>
+</plist>

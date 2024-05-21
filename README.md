@@ -29,3 +29,20 @@ MIT
 ---
 
 Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+
+
+
+add transmit plist file to ios and json file/manifest for android
+must set response handler
+
+
+Android
+=======
+Add to app/build.gradle
+
+repositories {
+  google()
+  maven {
+    url('https://transmit.jfrog.io/artifactory/transmit-security-gradle-release-local/')
+  }
+}
