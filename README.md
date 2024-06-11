@@ -24,3 +24,18 @@ repositories {
     url('https://transmit.jfrog.io/artifactory/transmit-security-gradle-release-local/')
   }
 }
+
+
+Initialize using strings.xml configuration:
+To do this, update the strings.xml file in your Application with the following content. The CLIENT_ID should be replaced with your client ID
+
+<resources>
+    <!-- Transmit Security Credentials -->
+    <string name="transmit_security_app_id">"default_application"</string>
+    <string name="transmit_security_client_id">"CLIENT_ID"</string>
+    <string name="transmit_security_base_url">https://api.transmitsecurity.io/</string>
+</resources>
+
+Call the dedicated Android function to initialize the SDK. Open your MainApplication.kt file and add the following to the bottom of the function onCreate()
+TsIdentityOrchestrationModule.initializeAndroidSDK(this)
+ 

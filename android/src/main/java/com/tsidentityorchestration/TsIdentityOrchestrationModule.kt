@@ -1,5 +1,6 @@
 package com.tsidentityorchestration
 
+import android.content.Context
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -30,8 +31,10 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
 
   @ReactMethod
   fun initializeSDK(promise: Promise) {
-    TSIdo.initializeSDK(reactContext)
-    promise.resolve(true)
+    promise.reject(
+      "TSIDOModule",
+      "On Android, please call the initializeAndroidSDK function from your Application class"
+    )
   }
 
   @ReactMethod
@@ -213,5 +216,9 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
 
   companion object {
     const val NAME = "TsIdentityOrchestration"
+
+    fun initializeAndroidSDK(context: Context) {
+      TSIdo.initializeSDK(context)
+    }
   }
 }
