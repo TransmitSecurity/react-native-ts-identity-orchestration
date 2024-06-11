@@ -1,6 +1,6 @@
 {
   "name": "react-native-ts-identity-orchestration",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "React Native wrapper for Transmit Security IDO SDK",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
