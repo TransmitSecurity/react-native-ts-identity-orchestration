@@ -7,7 +7,10 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
+import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.transmit.idosdk.TSIdo
@@ -19,6 +22,9 @@ import com.transmit.idosdk.TSIdoStartJourneyOptions
 import com.transmit.idosdk.TSIdoErrorCode
 import com.transmit.idosdk.TSIdoJourneyActionType
 import com.transmit.idosdk.TSIdoClientResponseOption
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
 
 class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext), TSIdoCallback<TSIdoServiceResponse> {
@@ -42,30 +48,85 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
     TSIdo.startJourney(journeyId,
       convertStartJourneyOptions(startJourneyOptions), object: TSIdoCallback<TSIdoServiceResponse>{
         override fun idoSuccess(result: TSIdoServiceResponse) {
-          promise.resolve(true);
+          //promise.resolve(true)
+          reportResponseEvent(true, convertServiceResponse(result))
         }
 
         override fun idoError(error: TSIdoSdkError) {
-          promise.reject("Error during startJourney", error.toString());
+          //promise.reject("Error during startJourney", error.toString());
+          reportResponseEvent(false, convertServiceError(error))
         }
       })
+    promise.resolve(true)
   }
 
   @ReactMethod
-  fun submitClientResponse(clientResponseOptionId: String, responseData: ReadableMap, promise: Promise) {
-    TSIdo.submitClientResponse(
-      clientResponseOptionId = convertResponseOptionId(clientResponseOptionId).toString(),
-      data = responseData as? Map<String, Any>,
+  fun submitClientResponse(clientResponseOptionId: String?, responseData: ReadableMap?, promise: Promise) {
+    if (clientResponseOptionId == null) {
+      promise.reject("IDO Module", "Must provide a client response option ID string")
+      return
+    }
+
+    val optionId = convertResponseOptionId(clientResponseOptionId).type
+    val nativeMap = readableMapToNativeMap(responseData)
+
+    TSIdo.submitClientResponse(optionId, nativeMap,
       object: TSIdoCallback<TSIdoServiceResponse>{
+
         override fun idoSuccess(result: TSIdoServiceResponse) {
-          promise.resolve(true);
+          reportResponseEvent(true, convertServiceResponse(result))
         }
 
         override fun idoError(error: TSIdoSdkError) {
-          promise.reject("Error during submitClientResponse", error.toString());
+          reportResponseEvent(false, convertServiceError(error))
         }
       }
     )
+
+    promise.resolve(true);
+  }
+
+  private fun readableMapToNativeMap(readableMap: ReadableMap?): Map<String, Any?>? {
+    if (readableMap == null) {
+      return null
+    }
+
+    val result = HashMap<String, Any?>()
+
+    val iterator = readableMap.keySetIterator()
+    while (iterator.hasNextKey()) {
+      val key = iterator.nextKey()
+      when (readableMap.getType(key)) {
+        ReadableType.Null -> result[key] = null
+        ReadableType.Boolean -> result[key] = readableMap.getBoolean(key)
+        ReadableType.Number -> result[key] = readableMap.getDouble(key)
+        ReadableType.String -> result[key] = readableMap.getString(key)
+        ReadableType.Map -> result[key] = readableMapToNativeMap(readableMap.getMap(key))
+        ReadableType.Array -> result[key] = readableArrayToList(readableMap.getArray(key))
+        else -> throw IllegalArgumentException("Unsupported type for key: $key")
+      }
+    }
+    return result
+  }
+
+  private fun readableArrayToList(readableArray: ReadableArray?): List<Any?> {
+    val result = ArrayList<Any?>()
+    if (readableArray == null) {
+      return result
+    }
+
+    for (i in 0 until readableArray.size()) {
+      when (readableArray.getType(i)) {
+        ReadableType.Null -> result.add(null)
+        ReadableType.Boolean -> result.add(readableArray.getBoolean(i))
+        ReadableType.Number -> result.add(readableArray.getDouble(i))
+        ReadableType.String -> result.add(readableArray.getString(i))
+        ReadableType.Map -> result.add(readableMapToNativeMap(readableArray.getMap(i)))
+        ReadableType.Array -> result.add(readableArrayToList(readableArray.getArray(i)))
+        else -> throw IllegalArgumentException("Unsupported array element type at index: $i")
+      }
+    }
+    return result
   }
 
   // region SDK API Conversion
@@ -109,21 +170,29 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   // IDO Response Handler
 
   override fun idoError(error: TSIdoSdkError) {
-    reportResponseEvent(false, convertServiceError(error))
+    //reportResponseEvent(false, convertServiceError(error))
   }
 
   override fun idoSuccess(result: TSIdoServiceResponse) {
-    reportResponseEvent(true, convertServiceResponse(result))
+    //reportResponseEvent(true, convertServiceResponse(result))
   }
 
   private fun convertServiceResponse(response: TSIdoServiceResponse): WritableMap {
     val jsResponse = Arguments.createMap()
-    jsResponse.putMap("data", response.data as ReadableMap)
-    jsResponse.putMap("errorData", convertErrorData(response.errorData) as WritableMap)
+    jsResponse.putMap("data", responseDataAnyToMap(response.data))
+    jsResponse.putMap("errorData", convertErrorData(response.errorData))
     jsResponse.putString("journeyStepId", idoJourneyStepIdToString(response.journeyStepId))
-    jsResponse.putMap("clientResponseOptions", convertClientResponseOption(response.clientResponseOptions) as WritableMap)
+    jsResponse.putMap("clientResponseOptions", convertClientResponseOptions(response.clientResponseOptions) as WritableMap)
     jsResponse.putString("token", response.token)
     return jsResponse
+  }
+
+  private fun responseDataAnyToMap(data: Any?): ReadableMap? {
+    if (data == null) return null
+
+    val dataAsString = responseDataAnyToString(data) ?: return null
+
+    return jsonToReadableMap((dataAsString))
   }
 
   private fun convertErrorData(errorData: TSIdoSdkError?): WritableMap? {
@@ -163,7 +232,10 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   private fun idoJourneyStepIdToString(journeyStepId: String?): String? {
     if (journeyStepId == null) return null
 
-    return when (journeyStepId) {
+    val cleanId = journeyStepId.replace("action:", "")
+    val matchEnum = cleanId.replaceFirstChar { it.uppercase() }
+
+    return when (matchEnum) {
       TSIdoJourneyActionType.Success.toString() -> "success"
       TSIdoJourneyActionType.Rejection.toString() -> "rejection"
       TSIdoJourneyActionType.Information.toString() -> "information"
@@ -178,24 +250,24 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       TSIdoJourneyActionType.AuthenticateNativeBiometrics.toString() -> "authenticateNativeBiometrics"
       TSIdoJourneyActionType.EmailOTPAuthentication.toString() -> "emailOTPAuthentication"
       TSIdoJourneyActionType.SmsOTPAuthentication.toString() -> "smsOTPAuthentication"
-      else -> "@unknown"
+      else -> journeyStepId
     }
   }
 
-  private fun convertClientResponseOption(
+  private fun convertClientResponseOptions(
     responseOptions: Map<String, TSIdoClientResponseOption>?
-  ): Map<String, Any?>? {
+  ): WritableMap? {
     if (responseOptions == null) return null
 
-    val jsOptions = mutableMapOf<String, Any?>()
+    var jsOptions: WritableMap = Arguments.createMap()
 
     for ((key, value) in responseOptions) {
-      val option = mapOf(
-        "type" to responseOptionTypeToString(value.type),
-        "id" to value.id,
-        "label" to value.label
-      )
-      jsOptions[key] = option
+      var option: WritableMap = Arguments.createMap()
+      option.putString("type", responseOptionTypeToString(value.type))
+      option.putString("id", value.id)
+      option.putString("label", value.label)
+
+      jsOptions.putMap(key, option)
     }
 
     return jsOptions
@@ -220,5 +292,82 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
     fun initializeAndroidSDK(context: Context) {
       TSIdo.initializeSDK(context)
     }
+  }
+
+  private fun responseDataAnyToString(data: Any?): String? {
+    return when (data) {
+      null -> null
+      is String -> data
+      is JSONObject -> data.toString()
+      is JSONArray -> data.toString()
+      is Number, is Boolean -> data.toString()
+      is Map<*, *> -> JSONObject(data as Map<*, *>).toString()
+      is Collection<*> -> JSONArray(data).toString()
+      else -> throw IllegalArgumentException("Unsupported data type")
+    }
+  }
+
+  private fun jsonToReadableMap(json: String): ReadableMap? {
+    return try {
+      val jsonObject = JSONObject(json)
+      convertJsonToMap(jsonObject)
+    } catch (e: JSONException) {
+      e.printStackTrace()
+      null
+    }
+  }
+
+  private fun convertJsonToMap(jsonObject: JSONObject): WritableMap {
+    val map = Arguments.createMap()
+    val keys = jsonObject.keys()
+
+    while (keys.hasNext()) {
+      val key = keys.next()
+      val value = jsonObject.get(key)
+
+      if (value is JSONObject) {
+        map.putMap(key, convertJsonToMap(value))
+      } else if (value is JSONArray) {
+        map.putArray(key, convertJsonToArray(value))
+      } else if (value is Boolean) {
+        map.putBoolean(key, value)
+      } else if (value is Int) {
+        map.putInt(key, value)
+      } else if (value is Double) {
+        map.putDouble(key, value)
+      } else if (value is String) {
+        map.putString(key, value)
+      } else {
+        map.putString(key, value.toString())
+      }
+    }
+
+    return map
+  }
+
+  private fun convertJsonToArray(jsonArray: JSONArray): WritableArray {
+    val array = Arguments.createArray()
+
+    for (i in 0 until jsonArray.length()) {
+      val value = jsonArray.get(i)
+
+      if (value is JSONObject) {
+        array.pushMap(convertJsonToMap(value))
+      } else if (value is JSONArray) {
+        array.pushArray(convertJsonToArray(value))
+      } else if (value is Boolean) {
+        array.pushBoolean(value)
+      } else if (value is Int) {
+        array.pushInt(value)
+      } else if (value is Double) {
+        array.pushDouble(value)
+      } else if (value is String) {
+        array.pushString(value)
+      } else {
+        array.pushString(value.toString())
+      }
+    }
+
+    return array
   }
 }

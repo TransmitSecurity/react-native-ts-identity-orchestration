@@ -38,4 +38,10 @@ To do this, update the strings.xml file in your Application with the following c
 
 Call the dedicated Android function to initialize the SDK. Open your MainApplication.kt file and add the following to the bottom of the function onCreate()
 TsIdentityOrchestrationModule.initializeAndroidSDK(this)
- 
+
+If you get a compile error:
+`Manifest merger failed : Attribute application@allowBackup value=(false)`
+
+1. Open your `AndroidManifest.xml` file
+2. Add `xmlns:tools="http://schemas.android.com/tools"` to the main manifest tag
+3. Add `tools:replace="android:allowBackup"` to the top of the `application` tag.
