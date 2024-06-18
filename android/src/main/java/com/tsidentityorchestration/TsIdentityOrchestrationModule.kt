@@ -67,8 +67,19 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       return
     }
 
-    val optionId = convertResponseOptionId(clientResponseOptionId).type
-    val nativeMap = readableMapToNativeMap(responseData)
+    val responseToOptionId = convertResponseOptionId(clientResponseOptionId)
+    var optionId = responseToOptionId.type
+    var nativeMap = readableMapToNativeMap(responseData)
+
+    if (responseToOptionId == TSIdoClientResponseOptionType.Custom) {
+      optionId = clientResponseOptionId
+      val mutableMap = nativeMap?.toMutableMap()
+
+      if (mutableMap !== null) {
+        mutableMap["escape_id"] = optionId
+        mutableMap["escape_params"] = mutableMap
+      }
+    }
 
     TSIdo.submitClientResponse(optionId, nativeMap,
       object: TSIdoCallback<TSIdoServiceResponse>{
@@ -83,7 +94,7 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       }
     )
 
-    promise.resolve(true);
+    promise.resolve(true)
   }
 
   private fun readableMapToNativeMap(readableMap: ReadableMap?): Map<String, Any?>? {
@@ -134,10 +145,13 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   private fun convertStartJourneyOptions(rawOptions: ReadableMap?):  TSIdoStartJourneyOptions? {
     if (rawOptions == null) return null
 
-    return TSIdoStartJourneyOptions(
-      additionalParams = rawOptions.getMap("additionalParams") as? Map<String, Any>,
+    val hashMap = rawOptions.getMap("additionalParams")?.toHashMap()
+    val options =  TSIdoStartJourneyOptions(
+      additionalParams = hashMap,
       flowId = rawOptions.getString("flowId")
     )
+
+    return options
   }
 
   private fun convertResponseOptionId(rawResponseOptionId: String): TSIdoClientResponseOptionType {
@@ -146,7 +160,7 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       "cancel" -> TSIdoClientResponseOptionType.Cancel
       "fail" -> TSIdoClientResponseOptionType.Fail
       "resend" -> TSIdoClientResponseOptionType.Resend
-      else -> TSIdoClientResponseOptionType.valueOf(rawResponseOptionId)
+      else -> TSIdoClientResponseOptionType.Custom
     }
   }
 
@@ -257,9 +271,9 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   private fun convertClientResponseOptions(
     responseOptions: Map<String, TSIdoClientResponseOption>?
   ): WritableMap? {
-    if (responseOptions == null) return null
-
     var jsOptions: WritableMap = Arguments.createMap()
+
+    if (responseOptions == null) return jsOptions
 
     for ((key, value) in responseOptions) {
       var option: WritableMap = Arguments.createMap()
