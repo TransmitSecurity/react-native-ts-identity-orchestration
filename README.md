@@ -4,10 +4,9 @@ Enhance your native iOS and Android applications with Transmit Identity Orchestr
 ## Installation
 
 ```sh
+// using `npm`:
 npm install react-native-ts-identity-orchestration
-```
-Or using Yarn:
-```sh
+// or using `yarn`:
 yarn add react-native-ts-identity-orchestration
 ```
 #### For iOS run:
@@ -19,7 +18,7 @@ pod install
 ## Native Project Configuration
 #### iOS
 1. Open your project's `.xcworkspace` found under `YOUR_PROJECT_PATH/iOS` in Xcode.
-2. Create a plist file named TransmitSecurity.plist in your Application with the following content. CLIENT_ID is your client ID (obtained in Step 1).
+2. Create a plist file named TransmitSecurity.plist in your Application with the following content. CLIENT_ID is configured in your Transmit server. Make sure the file is linked to your target.
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
