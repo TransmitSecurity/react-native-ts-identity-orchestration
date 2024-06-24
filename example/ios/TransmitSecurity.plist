@@ -5,11 +5,11 @@
 	<key>credentials</key>
 	<dict>
 		<key>baseUrl</key>
-		<string>https://portal.idsec-stg.com</string>
+		<string>https://api.transmitsecurity.io/</string>
 		<key>applicationId</key>
 		<string>default_application</string>
 		<key>clientId</key>
-		<string>kopuzt57bio75ehx0tq3gdjq9e3mt5e4</string>
+		<string>YOUR_CLIENT_ID</string>
 	</dict>
 </dict>
 </plist>
