@@ -29,7 +29,7 @@ pod install
     <dict>
         <!-- Use api.eu.transmitsecurity.io for EU, api.ca.transmitsecurity.io for CA -->
         <key>baseUrl</key>
-        <string>https://api.transmitsecurity.io/</string>
+        <string>https://api.transmitsecurity.io</string>
         <key>clientId</key>
         <string>CLIENT_ID</string>
     </dict>
@@ -45,7 +45,7 @@ pod install
     <!-- Transmit Security Credentials -->
     <string name="transmit_security_app_id">"default_application"</string>
     <string name="transmit_security_client_id">"CLIENT_ID"</string>
-    <string name="transmit_security_base_url">https://api.transmitsecurity.io/</string>
+    <string name="transmit_security_base_url">https://api.transmitsecurity.io</string>
 </resources>
 ```
 
@@ -71,7 +71,17 @@ repositories {
 
 
 ## Using the IDO Module
-#### 1. Module setup: Initialize, startJourneyWithId and sendClientResponse
+### 1. Module setup: initializeSDK, startJourney and submitClientResponse
+
+#### Example Implementation: IDO Module Service Wrapper
+
+Below is an example implementation of a service that encapsulates the functionality of the IDO module. This example demonstrates how to:
+
+- Initialize the IDO SDK with `idoSDK.initializeSDK()`
+- Start a journey using `idoSDK.startJourney(journeyId, options)`
+- Submit a client response with `idoSDK.submitClientResponse(clientResponseOptionId, data)`
+
+This comprehensive example will guide you through the process of integrating the IDO module into your application, ensuring a seamless and secure user experience.
 
 ```javascript
 import RNTSIdentityOrchestration, { TSIDOModule } from 'react-native-ts-identity-orchestration';
@@ -153,7 +163,7 @@ The Android SDK requires to be initialized in your App's Main Application class.
 TsIdentityOrchestrationModule.initializeAndroidSDK(this)
 ```
 
-#### 2. Handling responses
+### 2. Handling responses
 
 To handle responses and errors coming from the server or the native SDK, you must set a response handler by calling `this.idoSDK.setResponseHandler(handler)` before starting a journey.
 
@@ -196,7 +206,7 @@ export interface ServiceResponse {
 }
 ```
 
-### Collecting User Input and Submitting to the Server
+#### Collecting User Input and Submitting to the Server
 
 At this point, you may need to collect user input and submit it to the server using the module. You can do this using the `submitClientResponse(clientResponseOptionId, data)` API. 
 
@@ -226,3 +236,11 @@ More complex cases, such as `Form`, may require additional data to be resolved. 
        TSIDOModule.ClientResponseOptionType.clientInput, 
        { externalUserId: userId, userPassword: password }
    );
+
+   ## Author
+
+Transmit Security, https://github.com/TransmitSecurity
+
+## License
+
+This project is licensed under the MIT license. See the LICENSE file for more info.
