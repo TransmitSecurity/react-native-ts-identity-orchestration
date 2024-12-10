@@ -115,6 +115,11 @@ export namespace TSIDOModule {
         - responseHandler : The response handler object with success and error callbacks.
       */
     setResponseHandler: (responseHandler: TSIDOModule.ResponseHandler) => void;
+
+     /**
+      This method will generate a debug PIN.
+     */
+    generateDebugPin: () => Promise<string | null>;
   }
 }
 
@@ -144,6 +149,16 @@ class RNTSIdentityOrchestration implements TSIDOModule.API {
       RNTSIdentityOrchestration.kResponseHandlerEventname,
       this.onResponseReceived
     );
+  }
+
+  generateDebugPin = async (): Promise<string | null> => {
+    try {
+      const debugPin = await TsIdentityOrchestration.generateDebugPin();
+      return debugPin;
+    } catch (error) {
+      console.error("Error generating debug pin", error);
+      return null;
+    } 
   }
 
   private onResponseReceived = async (params: any) => {
