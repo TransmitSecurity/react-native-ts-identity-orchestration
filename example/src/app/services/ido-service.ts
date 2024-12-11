@@ -42,7 +42,7 @@ class IDOService {
         this.idoSDK.startJourney(journeyId);
     }
 
-    public generateDebugPin = async (): Promise<string> => {
+    public generateDebugPin = async (): Promise<string | null> => {
         return await this.idoSDK.generateDebugPin();
     }
 
