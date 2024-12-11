@@ -59,6 +59,22 @@ class TsIdentityOrchestration: RCTEventEmitter {
                 resolve(true)
             }
         }
+  
+    @objc(generateDebugPin:withRejecter:)
+    func generateDebugPin(
+      _ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        
+        runBlockOnMain {
+          TSIdo.generateDebugPin { result in
+            switch result {
+            case .success(let response):
+              resolve(response)
+            case .failure(let error):
+              reject("Error generating debug pin", nil, error)
+            }
+          }
+        }
+      }
     
     // MARK: - Helpers
     

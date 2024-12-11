@@ -36,6 +36,16 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   }
 
   @ReactMethod
+  fun addListener(type: String?) {
+    // Keep: Required for RN built in Event Emitter Calls.
+  }
+
+  @ReactMethod
+  fun removeListeners(type: Int?) {
+    // Keep: Required for RN built in Event Emitter Calls.
+  }
+
+  @ReactMethod
   fun initializeSDK(promise: Promise) {
     promise.reject(
       "TSIDOModule",
@@ -96,6 +106,21 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
 
     promise.resolve(true)
   }
+
+  @ReactMethod
+  fun generateDebugPin(promise: Promise) {
+    TSIdo.generateDebugPin(object : TSIdoCallback<String> {
+      override fun idoSuccess(result: String) {
+        promise.resolve(result)
+      }
+
+      override fun idoError(error: TSIdoSdkError) {
+        promise.reject("Error during generateDebugPin", error.toString())
+      }
+    })
+  }
+
+  // region Private Methods
 
   private fun readableMapToNativeMap(readableMap: ReadableMap?): Map<String, Any?>? {
     if (readableMap == null) {

@@ -42,6 +42,10 @@ class IDOService {
         this.idoSDK.startJourney(journeyId);
     }
 
+    public generateDebugPin = async (): Promise<string | null> => {
+        return await this.idoSDK.generateDebugPin();
+    }
+
     private handleJourneyActionResponse = (results: TSIDOModule.ServiceResponse) => {
 
         console.log(`Handle Journey Action Response: ${JSON.stringify(results)}`);
@@ -104,16 +108,6 @@ class IDOService {
             text: buttonText,
             onPress: () => onContinue()
         }]);
-
-        /*
-            {
-                "client_input": {
-                "id": "client_input", 
-                "label": "Client Input", 
-                "type": "clientInput"}
-            }, 
-                "data": {"button_text": "OK", "challenge": "9HQMfiXbcfSLmF3SgAejokao", "parameters": [], "text": "Example information text.", "title": "Information", "token": null}, "errorData": null, "journeyStepId": "information", "token": null}
-        */
     }
 }
 export default new IDOService();

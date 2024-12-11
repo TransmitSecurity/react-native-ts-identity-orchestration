@@ -52,6 +52,15 @@ class LoginScreen extends React.Component<LoginScreenProps, LoginScreenState> {
         console.error('Error during journey', results);
     }
 
+    private handleGenerateDebugPin = async () => {
+        const debugPin = await idoService.generateDebugPin();
+        if (debugPin) {
+            Alert.alert('Debug PIN', debugPin);
+        } else {
+            Alert.alert('Error', 'Error generating debug pin');
+        }
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -63,6 +72,7 @@ class LoginScreen extends React.Component<LoginScreenProps, LoginScreenState> {
                     onChangeText={this.handleUsernameChange}
                 />
                 <Button title="Submit" onPress={this.handleSubmit} />
+                <Button title="Generate Debug PIN" onPress={this.handleGenerateDebugPin} />
             </View>
         );
     }
