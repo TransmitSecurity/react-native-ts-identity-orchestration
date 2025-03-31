@@ -34,11 +34,15 @@ class TsIdentityOrchestration: RCTEventEmitter {
       runBlockOnMain { [weak self] in
         guard let self = self else { return }
         
-        TSIdo.startJourney(
-          journeyId: journeyId,
-          options: self.convertStartJourneyOptions(startJourneyOptions)
-        )
-        resolve(true)
+        do {
+            try TSIdo.startJourney(
+                journeyId: journeyId,
+                options: self.convertStartJourneyOptions(startJourneyOptions)
+            )
+            resolve(true)
+        } catch {
+            reject(self.kTag, "Error during startJourney", error)
+        }
       }
     }
   
@@ -51,12 +55,15 @@ class TsIdentityOrchestration: RCTEventEmitter {
       runBlockOnMain { [weak self] in
         guard let self = self else { return }
         
-        TSIdo.submitClientResponse(
-          clientResponseOptionId: self.convertResponseOptionId(clientResponseOptionId),
-          data: responseData as? [String : Any]
-        )
-        
-        resolve(true)
+        do {
+            try TSIdo.submitClientResponse(
+                clientResponseOptionId: self.convertResponseOptionId(clientResponseOptionId),
+                data: responseData as? [String : Any]
+            )
+            resolve(true)
+        } catch {
+            reject(self.kTag, "Error during submitClientResponse", error)
+        }
       }
     }
   
@@ -64,15 +71,17 @@ class TsIdentityOrchestration: RCTEventEmitter {
   func generateDebugPin(
     _ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
       
-      runBlockOnMain {
-        TSIdo.generateDebugPin { result in
-          switch result {
-          case .success(let response):
-            resolve(response)
-          case .failure(let error):
-            reject("Error generating debug pin", nil, error)
+      do {
+          try TSIdo.generateDebugPin { result in
+            switch result {
+            case .success(let response):
+              resolve(response)
+            case .failure(let error):
+              reject(self.kTag, "Error during generateDebugPin", error)
+            }
           }
-        }
+      } catch {
+          reject(self.kTag, "Error during generateDebugPin", error)
       }
     }
   
