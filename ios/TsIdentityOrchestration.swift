@@ -100,9 +100,12 @@ class TsIdentityOrchestration: RCTEventEmitter {
   private func convertStartJourneyOptions(_ rawOptions: NSDictionary?) -> TSIdoStartJourneyOptions? {
     guard let rawOptions = rawOptions else { return nil }
     
+    let encryptionMode = rawOptions["encrypted"] as? Bool ?? false
+    
     return TSIdoStartJourneyOptions(
       additionalParams: rawOptions["additionalParams"] as? [String : Any],
-      flowId: rawOptions["flowId"] as? String
+      flowId: rawOptions["flowId"] as? String,
+      encryptionMode: encryptionMode ? .full : .none
     )
   }
   

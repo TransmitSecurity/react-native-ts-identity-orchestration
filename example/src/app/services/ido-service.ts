@@ -8,6 +8,7 @@ class IDOService {
 
     private idoSDK = RNTSIdentityOrchestration;
     private isInitialized: boolean = false;
+    private useEncryptedModeFull: boolean = false;
     private onJourneyEndSuccess: ServiceSuccessCallback | null = null;
     private onJourneyRejectionError: ServiceErrorCallback | null = null;
 
@@ -39,7 +40,7 @@ class IDOService {
         };
 
         this.idoSDK.setResponseHandler(responseHandler);
-        this.idoSDK.startJourney(journeyId);
+        this.idoSDK.startJourney(journeyId, { encrypted: this.useEncryptedModeFull });
     }
 
     public generateDebugPin = async (): Promise<string | null> => {

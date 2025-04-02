@@ -113,22 +113,15 @@ class AuthenticationService {
        Starts a Journey with a given id.
      - Parameters:
        - journeyId: Journey Identifier in the Transmit Security Admin Console.
-       - additionalParams: Additional parameters to be passed to the journey.
+       - options: Optional - provide additionalParams, flowId and encrypted (encryptionMode, true=full, false=none)
        - Success and Error blocks to process responses
   */
   public startJourneyWithId = (
       journeyId: string, 
-      additionalParams: { [key: string]: any; } | null, 
+      options: TSIDOModule.StartJourneyOptions | null, 
       onSuccess: ServiceSuccessCallback, 
       onError: ServiceErrorCallback
   ) => {
-
-      let options: TSIDOModule.StartJourneyOptions | null = null;
-      if (additionalParams) {
-          options = {
-              additionalParams: additionalParams
-          };
-      }
 
       this.idoSDK.setResponseHandler({
           success: (results: TSIDOModule.ServiceResponse) => {
