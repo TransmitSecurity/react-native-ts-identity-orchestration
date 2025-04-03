@@ -225,6 +225,7 @@ extension TsIdentityOrchestration: TSIdoDelegate {
     case .noActiveJourney: return "noActiveJourney"
     case .expiredOTPPasscode: return "expiredOTPPasscode"
     case .missingRequestIdInApprovalPayload: return "missingRequestIdInApprovalPayload"
+    case .internalError(_): return "internalError"
     @unknown default: return "@unknown"
     }
   }
