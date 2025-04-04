@@ -22,6 +22,7 @@ import com.transmit.idosdk.TSIdoStartJourneyOptions
 import com.transmit.idosdk.TSIdoErrorCode
 import com.transmit.idosdk.TSIdoJourneyActionType
 import com.transmit.idosdk.TSIdoClientResponseOption
+import com.transmit.idosdk.TSIdoEncryptionMode
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -171,9 +172,12 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
     if (rawOptions == null) return null
 
     val hashMap = rawOptions.getMap("additionalParams")?.toHashMap()
+    val encryptionMode = parseEncryptionMode(rawOptions.getBoolean("encrypted"))
+
     val options =  TSIdoStartJourneyOptions(
       additionalParams = hashMap,
-      flowId = rawOptions.getString("flowId")
+      flowId = rawOptions.getString("flowId"),
+      encryptionMode = encryptionMode
     )
 
     return options
@@ -186,6 +190,13 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       "fail" -> TSIdoClientResponseOptionType.Fail
       "resend" -> TSIdoClientResponseOptionType.Resend
       else -> TSIdoClientResponseOptionType.Custom
+    }
+  }
+
+  private fun parseEncryptionMode(encrypted: Boolean?): TSIdoEncryptionMode {
+    return when (encrypted) {
+      true -> TSIdoEncryptionMode.Full
+      false, null -> TSIdoEncryptionMode.None
     }
   }
 
@@ -264,6 +275,7 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       TSIdoErrorCode.DeviceValidationError -> "deviceValidationError"
       TSIdoErrorCode.InvalidCredentials -> "invalidCredentials"
       TSIdoErrorCode.ExpiredOtpPasscode -> "expiredOtpPasscode"
+      TSIdoErrorCode.InternalError -> "internalError"
       else -> "@unknown"
     }
   }
@@ -289,6 +301,12 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       TSIdoJourneyActionType.AuthenticateNativeBiometrics.toString() -> "authenticateNativeBiometrics"
       TSIdoJourneyActionType.EmailOTPAuthentication.toString() -> "emailOTPAuthentication"
       TSIdoJourneyActionType.SmsOTPAuthentication.toString() -> "smsOTPAuthentication"
+      TSIdoJourneyActionType.EmailValidation.toString() -> "emailValidation"
+      TSIdoJourneyActionType.SmsValidation.toString() -> "smsValidation"
+      TSIdoJourneyActionType.TotpRegistration.toString() -> "totpRegistration"
+      TSIdoJourneyActionType.TransactionSigningTOTP.toString() -> "totpSigningTransaction"
+      TSIdoJourneyActionType.TransactionSigningWebAuthn.toString() -> "webAuthnTransactionSigning"
+      TSIdoJourneyActionType.TransactionSigningNativeBiometrics.toString() -> "nativeBiometricsTransactionSigning"
       else -> journeyStepId
     }
   }

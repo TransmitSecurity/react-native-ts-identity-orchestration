@@ -7,8 +7,8 @@ PODS:
   - hermes-engine (0.74.0):
     - hermes-engine/Pre-built (= 0.74.0)
   - hermes-engine/Pre-built (0.74.0)
-  - IdentityOrchestration (1.1.12):
-    - TSCoreSDK (~> 1.0.27)
+  - IdentityOrchestration (1.1.14):
+    - TSCoreSDK (~> 1.0.29)
   - RCT-Folly (2024.01.01.00):
     - boost
     - DoubleConversion
@@ -939,11 +939,11 @@ PODS:
     - React-debug
   - react-native-safe-area-context (4.14.0):
     - React-Core
-  - react-native-ts-identity-orchestration (0.1.5):
+  - react-native-ts-identity-orchestration (0.1.6):
     - DoubleConversion
     - glog
     - hermes-engine
-    - IdentityOrchestration (~> 1.1.12)
+    - IdentityOrchestration (= 1.1.14)
     - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
     - RCTTypeSafety
@@ -1211,7 +1211,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.0)
-  - TSCoreSDK (1.0.27)
+  - TSCoreSDK (1.0.29)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1405,7 +1405,7 @@ SPEC CHECKSUMS:
   fmt: 4c2741a687cc09f0634a2e2c72a838b99f1ff120
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
   hermes-engine: 6eae7edb2f563ee41d7c1f91f4f2e57c26d8a5c3
-  IdentityOrchestration: 32431866445d5625eb37292dc27e4434906ca6c5
+  IdentityOrchestration: 0b87c3e133cdaa970d97e777b98a28b5e272c012
   RCT-Folly: 045d6ecaa59d826c5736dfba0b2f4083ff8d79df
   RCTDeprecation: 3ca8b6c36bfb302e1895b72cfe7db0de0c92cd47
   RCTRequired: 9fc183af555fd0c89a366c34c1ae70b7e03b1dc5
@@ -1431,7 +1431,7 @@ SPEC CHECKSUMS:
   React-logger: 03f2f7b955cfe24593a2b8c9705c23e142d1ad24
   React-Mapbuffer: 5e05d78fe6505f4a054b86f415733d4ad02dd314
   react-native-safe-area-context: 4532f1a0c5d34a46b9324ccaaedcb5582a302b7d
-  react-native-ts-identity-orchestration: 090741c3fbb264418a22a06a3a2e30ad56c1c1fb
+  react-native-ts-identity-orchestration: 57affa5036bf212e827bb6afeeda0513dda0ae9c
   React-nativeconfig: 951ec32f632e81cbd7d40aebb3211313251c092e
   React-NativeModulesApple: 0b3a42ca90069119ef79d8b2327d01441d71abd4
   React-perflogger: 271f1111779fef70f9502d1d38da5132e5585230
@@ -1457,7 +1457,7 @@ SPEC CHECKSUMS:
   ReactCommon: 2cde697fd80bd31da1d6448d25a5803088585219
   RNGestureHandler: 6fee3422fd8c81c5ee756fa72e3d1780e9943d9d
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
-  TSCoreSDK: 750f7723e2c8c8e7501f050021674bc30e48de37
+  TSCoreSDK: c926ecf79c54d421153c6a2dca316fdb7e105af8
   Yoga: 56f906bf6c11c931588191dde1229fd3e4e3d557
 
 PODFILE CHECKSUM: f777f0c5807a83892cf2097336bfdabd48dde969

@@ -24,6 +24,7 @@ export namespace TSIDOModule {
   export interface StartJourneyOptions {
     additionalParams?: { [key: string]: any; } | null;
     flowId?: string | null;
+    encrypted: boolean;
   }
 
   export const enum ClientResponseOptionType {
