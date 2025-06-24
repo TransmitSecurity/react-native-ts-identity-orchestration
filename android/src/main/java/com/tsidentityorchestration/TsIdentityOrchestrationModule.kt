@@ -29,8 +29,7 @@ import org.json.JSONObject
 
 class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext), TSIdoCallback<TSIdoServiceResponse> {
-
-  private val idvStatusChangeEventName: String = "tsido_response_handler_event"
+    private val idvStatusChangeEventName: String = "tsido_response_handler_event"
 
   override fun getName(): String {
     return NAME
