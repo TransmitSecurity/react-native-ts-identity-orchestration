@@ -210,6 +210,9 @@ extension TsIdentityOrchestration: TSIdoDelegate {
     case .totpSigningTransaction: return "totpSigningTransaction"
     case .webAuthnTransactionSigning: return "webAuthnTransactionSigning"
     case .nativeBiometricsTransactionSigning: return "nativeBiometricsTransactionSigning"
+      
+    case .pinCodeRegistration: return "pinCodeRegistration"
+    case .pinCodeAuthentication: return "pinCodeAuthentication"
     @unknown default: return "@unknown"
     }
   }
@@ -226,6 +229,8 @@ extension TsIdentityOrchestration: TSIdoDelegate {
     case .expiredOTPPasscode: return "expiredOTPPasscode"
     case .missingRequestIdInApprovalPayload: return "missingRequestIdInApprovalPayload"
     case .internalError(_): return "internalError"
+    
+    case .maxResendReached: return "maxResendReached"
     @unknown default: return "@unknown"
     }
   }
