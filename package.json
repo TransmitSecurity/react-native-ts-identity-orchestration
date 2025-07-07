@@ -158,6 +158,11 @@
       ]
     ]
   },
+  "codegenConfig": {
+    "name": "RNTsIdentityOrchestrationSpec",
+    "type": "modules",
+    "jsSrcsDir": "src"
+  },
   "dependencies": {
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/stack": "^6.3.29",
