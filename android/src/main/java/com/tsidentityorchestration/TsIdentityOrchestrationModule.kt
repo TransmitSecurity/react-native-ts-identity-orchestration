@@ -274,6 +274,11 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       TSIdoErrorCode.DeviceValidationError -> "deviceValidationError"
       TSIdoErrorCode.InvalidCredentials -> "invalidCredentials"
       TSIdoErrorCode.ExpiredOtpPasscode -> "expiredOtpPasscode"
+
+      TSIdoErrorCode.ExpiredValidationPasscode -> "invalidCredentials"
+      TSIdoErrorCode.ExpiredOtpPasscode -> "expiredValidationPasscode"
+      TSIdoErrorCode.MaxResendReached -> "maxResendReached"
+
       TSIdoErrorCode.InternalError -> "internalError"
       else -> "@unknown"
     }
@@ -306,6 +311,8 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       TSIdoJourneyActionType.TransactionSigningTOTP.toString() -> "totpSigningTransaction"
       TSIdoJourneyActionType.TransactionSigningWebAuthn.toString() -> "webAuthnTransactionSigning"
       TSIdoJourneyActionType.TransactionSigningNativeBiometrics.toString() -> "nativeBiometricsTransactionSigning"
+      TSIdoJourneyActionType.PinCodeRegistration.toString() -> "pinCodeRegistration"
+      TSIdoJourneyActionType.PinCodeAuthentication.toString() -> "pinCodeAuthentication"
       else -> journeyStepId
     }
   }
