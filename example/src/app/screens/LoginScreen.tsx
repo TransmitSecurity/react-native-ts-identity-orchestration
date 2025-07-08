@@ -52,15 +52,6 @@ class LoginScreen extends React.Component<LoginScreenProps, LoginScreenState> {
         console.error('Error during journey', results);
     }
 
-    private handleGenerateDebugPin = async () => {
-        const debugPin = await idoService.generateDebugPin();
-        if (debugPin) {
-            Alert.alert('Debug PIN', debugPin);
-        } else {
-            Alert.alert('Error', 'Error generating debug pin');
-        }
-    }
-
     private handleStartMobileApproveJourney = () => {
         console.log('Start Mobile Approve Journey button clicked');
     }
@@ -106,10 +97,6 @@ class LoginScreen extends React.Component<LoginScreenProps, LoginScreenState> {
 
                                 <TouchableOpacity style={styles.secondaryButton} onPress={this.handleStartMobileApproveJourney}>
                                     <Text style={styles.secondaryButtonText}>Start Mobile Approve Journey</Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity style={styles.debugButton} onPress={this.handleGenerateDebugPin}>
-                                    <Text style={styles.debugButtonText}>Generate Debug PIN</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -221,21 +208,6 @@ const styles = StyleSheet.create({
         color: '#007AFF',
         fontSize: 16,
         fontWeight: '600',
-    },
-    debugButton: {
-        height: 48,
-        backgroundColor: 'transparent',
-        borderWidth: 1,
-        borderColor: '#6c757d',
-        borderRadius: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 8,
-    },
-    debugButtonText: {
-        color: '#6c757d',
-        fontSize: 14,
-        fontWeight: '500',
     },
 });
 

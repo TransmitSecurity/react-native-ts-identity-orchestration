@@ -5,6 +5,7 @@ export interface IdoNavigationState {
   isVisible: boolean;
   currentScreen: ReactNode | null;
   journeyData: TSIDOModule.ServiceResponse | null;
+  showDebugButton: boolean;
 }
 
 interface IdoNavigationContextType {
@@ -12,6 +13,7 @@ interface IdoNavigationContextType {
   showScreen: (screen: ReactNode, data?: TSIDOModule.ServiceResponse) => void;
   hideNavigation: () => void;
   updateJourneyData: (data: TSIDOModule.ServiceResponse) => void;
+  setDebugButtonVisibility: (visible: boolean) => void;
 }
 
 const IdoNavigationContext = createContext<IdoNavigationContextType | undefined>(undefined);
@@ -33,6 +35,7 @@ export const IdoNavigationProvider: React.FC<IdoNavigationProviderProps> = ({ ch
     isVisible: false,
     currentScreen: null,
     journeyData: null,
+    showDebugButton: false, // Default to false - only show in authentication screens
   });
 
   const showScreen = (screen: ReactNode, data?: TSIDOModule.ServiceResponse) => {
@@ -40,6 +43,7 @@ export const IdoNavigationProvider: React.FC<IdoNavigationProviderProps> = ({ ch
       isVisible: true,
       currentScreen: screen,
       journeyData: data || null,
+      showDebugButton: true, // Always show debug button for authentication screens
     });
   };
 
@@ -48,6 +52,7 @@ export const IdoNavigationProvider: React.FC<IdoNavigationProviderProps> = ({ ch
       isVisible: false,
       currentScreen: null,
       journeyData: null,
+      showDebugButton: false, // Hide debug button when navigation is hidden
     });
   };
 
@@ -58,8 +63,15 @@ export const IdoNavigationProvider: React.FC<IdoNavigationProviderProps> = ({ ch
     }));
   };
 
+  const setDebugButtonVisibility = (visible: boolean) => {
+    setState(prev => ({
+      ...prev,
+      showDebugButton: visible,
+    }));
+  };
+
   return (
-    <IdoNavigationContext.Provider value={{ state, showScreen, hideNavigation, updateJourneyData }}>
+    <IdoNavigationContext.Provider value={{ state, showScreen, hideNavigation, updateJourneyData, setDebugButtonVisibility }}>
       {children}
     </IdoNavigationContext.Provider>
   );
