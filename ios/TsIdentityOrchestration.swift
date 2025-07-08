@@ -46,6 +46,27 @@ class TsIdentityOrchestration: RCTEventEmitter {
       }
     }
   
+  @objc(startMobileApproveJourney:startJourneyOptions:withResolver:withRejecter:)
+  func startMobileApproveJourney(
+    _ payload: [String: Any],
+    startJourneyOptions: NSDictionary?,
+    resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+      
+      runBlockOnMain { [weak self] in
+        guard let self = self else { return }
+        
+        do {
+          try TSIdo.startMobileApproveJourney(
+            payload: payload,
+            options: self.convertStartJourneyOptions(startJourneyOptions)
+          )
+          resolve(true)
+        } catch {
+          reject(self.kTag, "Error during startJourney", error)
+        }
+      }
+    }
+  
   @objc(submitClientResponse:responseData:withResolver:withRejecter:)
   func submitClientResponse(
     _ clientResponseOptionId: String,

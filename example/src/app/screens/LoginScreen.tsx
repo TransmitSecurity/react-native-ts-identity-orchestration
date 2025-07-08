@@ -54,6 +54,11 @@ class LoginScreen extends React.Component<LoginScreenProps, LoginScreenState> {
 
     private handleStartMobileApproveJourney = () => {
         console.log('Start Mobile Approve Journey button clicked');
+
+        idoService.startMobileApproveJourney(
+            this.handleJourneySuccess,
+            this.handleJourneyRejection
+        );
     }
 
     render() {

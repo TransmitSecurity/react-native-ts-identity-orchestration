@@ -56,6 +56,28 @@ class IDOService {
         this.idoSDK.startJourney(journeyId, { encrypted: this.useEncryptedModeFull });
     }
 
+    public startMobileApproveJourney = (onSuccess: ServiceSuccessCallback, onError: ServiceErrorCallback) => {
+        if (!this.isInitialized) {
+            console.error('IDO service not initialized');
+            return;
+        }
+
+        this.onJourneyEndSuccess = onSuccess;
+        this.onJourneyRejectionError = onError;
+
+        const responseHandler: TSIDOModule.ResponseHandler = {
+            success: (results: TSIDOModule.ServiceResponse) => {
+                this.handleJourneyActionResponse(results);
+            },
+            error: (error: TSIDOModule.JourneyErrorType) => {
+                this.handleJourneyActionError(error);
+            }
+        };
+
+        this.idoSDK.setResponseHandler(responseHandler);
+        this.idoSDK.startMobileApproveJourney({}, { encrypted: this.useEncryptedModeFull });
+    }
+
     public generateDebugPin = async (): Promise<string | null> => {
         return await this.idoSDK.generateDebugPin();
     }

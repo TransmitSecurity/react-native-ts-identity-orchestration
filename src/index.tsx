@@ -93,6 +93,7 @@ export namespace TSIDOModule {
     Credentials are configured from TransmitSecurity.plist file (iOS) or strings.xml file (Android).
     */
     initializeSDK: () => Promise<boolean>;
+
     /**
        Starts a Journey with a given id.
      - Parameters:
@@ -100,6 +101,15 @@ export namespace TSIDOModule {
        - options: Additional parameters to be passed to the journey.
     */
     startJourney: (journeyId: string, options?: TSIDOModule.StartJourneyOptions | null | undefined) => void;
+    
+    /**
+      Starts a Mobile Approve Journey with a given payload.
+      - Parameters:
+        - payload: The payload object containing the necessary data to start the mobile approve journey.
+        - options: Additional parameters to be passed to the journey.
+    */
+    startMobileApproveJourney: (payload: { [key: string]: any; }, options?: TSIDOModule.StartJourneyOptions | null | undefined) => void;
+    
     /**
       This method will submit client input to the Journey step to process.
   
@@ -135,6 +145,13 @@ class RNTSIdentityOrchestration implements TSIDOModule.API {
 
   startJourney = (journeyId: string, options?: TSIDOModule.StartJourneyOptions | null | undefined): void => {
     TsIdentityOrchestration.startJourney(journeyId, options);
+  }
+
+  startMobileApproveJourney = (
+    payload: { [key: string]: any; },
+    options?: TSIDOModule.StartJourneyOptions | null | undefined
+  ): void => {
+    TsIdentityOrchestration.startMobileApproveJourney(payload, options);
   }
 
   submitClientResponse = (
