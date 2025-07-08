@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, StatusBar, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, StatusBar, SafeAreaView, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { type StackNavigationProp } from '@react-navigation/stack';
 import idoService from '../services/ido-service';
 import config from '../config';
@@ -69,39 +69,52 @@ class LoginScreen extends React.Component<LoginScreenProps, LoginScreenState> {
         return (
             <SafeAreaView style={styles.container}>
                 <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
-                <View style={styles.content}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>Welcome Back</Text>
-                        <Text style={styles.subtitle}>Please log in to your account</Text>
-                    </View>
-                    
-                    <View style={styles.inputContainer}>
-                        <Text style={styles.inputLabel}>Username</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Enter your username"
-                            placeholderTextColor="#8e8e93"
-                            value={this.state.username}
-                            onChangeText={this.handleUsernameChange}
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                        />
-                    </View>
+                <KeyboardAvoidingView 
+                    style={styles.keyboardAvoidingView}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 50}
+                >
+                    <ScrollView 
+                        style={styles.scrollView}
+                        contentContainerStyle={styles.scrollContent}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.content}>
+                            <View style={styles.header}>
+                                <Text style={styles.title}>Welcome Back</Text>
+                                <Text style={styles.subtitle}>Please log in to your account</Text>
+                            </View>
+                            
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Username</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter your username"
+                                    placeholderTextColor="#8e8e93"
+                                    value={this.state.username}
+                                    onChangeText={this.handleUsernameChange}
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
+                            </View>
 
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.primaryButton} onPress={this.handleSubmit}>
-                            <Text style={styles.primaryButtonText}>Submit</Text>
-                        </TouchableOpacity>
+                            <View style={styles.buttonContainer}>
+                                <TouchableOpacity style={styles.primaryButton} onPress={this.handleSubmit}>
+                                    <Text style={styles.primaryButtonText}>Submit</Text>
+                                </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.secondaryButton} onPress={this.handleStartMobileApproveJourney}>
-                            <Text style={styles.secondaryButtonText}>Start Mobile Approve Journey</Text>
-                        </TouchableOpacity>
+                                <TouchableOpacity style={styles.secondaryButton} onPress={this.handleStartMobileApproveJourney}>
+                                    <Text style={styles.secondaryButtonText}>Start Mobile Approve Journey</Text>
+                                </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.debugButton} onPress={this.handleGenerateDebugPin}>
-                            <Text style={styles.debugButtonText}>Generate Debug PIN</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                                <TouchableOpacity style={styles.debugButton} onPress={this.handleGenerateDebugPin}>
+                                    <Text style={styles.debugButtonText}>Generate Debug PIN</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </ScrollView>
+                </KeyboardAvoidingView>
             </SafeAreaView>
         );
     }
@@ -111,6 +124,16 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f8f9fa',
+    },
+    keyboardAvoidingView: {
+        flex: 1,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+        paddingBottom: 100,
     },
     content: {
         flex: 1,
@@ -163,6 +186,7 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         gap: 16,
+        paddingBottom: 60,
     },
     primaryButton: {
         height: 56,
