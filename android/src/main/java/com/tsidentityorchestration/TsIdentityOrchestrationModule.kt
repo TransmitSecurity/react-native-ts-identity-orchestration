@@ -71,6 +71,32 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   }
 
   @ReactMethod
+  fun startMobileApproveJourney(payload: ReadableMap, startJourneyOptions: ReadableMap?, promise: Promise) {
+    try {
+      val stringPayload = readableMapToStringMap(payload)
+      val options = convertStartJourneyOptions(startJourneyOptions)
+
+      TSIdo.startMobileApproveJourney(
+        stringPayload,
+        options,
+        object : TSIdoCallback<TSIdoServiceResponse> {
+          override fun idoSuccess(result: TSIdoServiceResponse) {
+            reportResponseEvent(true, convertServiceResponse(result))
+            promise.resolve(true)
+          }
+
+          override fun idoError(error: TSIdoSdkError) {
+            reportResponseEvent(false, convertServiceError(error))
+            promise.reject("START_JOURNEY_ERROR", error.errorMessage, null)
+          }
+        }
+      )
+    } catch (e: Exception) {
+      promise.reject("INVALID_PAYLOAD", e.message, e)
+    }
+  }
+
+  @ReactMethod
   fun submitClientResponse(clientResponseOptionId: String?, responseData: ReadableMap?, promise: Promise) {
     if (clientResponseOptionId == null) {
       promise.reject("IDO Module", "Must provide a client response option ID string")
@@ -121,6 +147,21 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   }
 
   // region Private Methods
+
+  fun readableMapToStringMap(readableMap: ReadableMap): Map<String, String> {
+    val result = mutableMapOf<String, String>()
+    val iterator = readableMap.keySetIterator()
+    while (iterator.hasNextKey()) {
+      val key = iterator.nextKey()
+      val type = readableMap.getType(key)
+      if (type == ReadableType.String) {
+        result[key] = readableMap.getString(key) ?: ""
+      } else {
+        throw IllegalArgumentException("Expected string value for key '$key', but got $type")
+      }
+    }
+    return result
+  }
 
   private fun readableMapToNativeMap(readableMap: ReadableMap?): Map<String, Any?>? {
     if (readableMap == null) {

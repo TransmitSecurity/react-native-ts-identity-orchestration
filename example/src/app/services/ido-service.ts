@@ -48,6 +48,7 @@ class IDOService {
                 this.handleJourneyActionResponse(results);
             },
             error: (error: TSIDOModule.JourneyErrorType) => {
+                console.error('Journey action error:', error);
                 this.handleJourneyActionError(error);
             }
         };
@@ -70,12 +71,18 @@ class IDOService {
                 this.handleJourneyActionResponse(results);
             },
             error: (error: TSIDOModule.JourneyErrorType) => {
+                console.error('Mobile approve journey error:', error);
                 this.handleJourneyActionError(error);
             }
         };
 
+        // The approvalData is sent by the server and should be replaced with actual data
+        const approvalData: { [key: string]: string } = {
+            "requestId": "example_value"
+        };
+
         this.idoSDK.setResponseHandler(responseHandler);
-        this.idoSDK.startMobileApproveJourney({}, { encrypted: this.useEncryptedModeFull });
+        this.idoSDK.startMobileApproveJourney(approvalData, { encrypted: this.useEncryptedModeFull });
     }
 
     public generateDebugPin = async (): Promise<string | null> => {
@@ -113,7 +120,9 @@ class IDOService {
 
     private handleJourneyActionError = (error: TSIDOModule.JourneyErrorType) => {
         console.log("ERROR ACTION")
-        console.error(error)
+        if (error) {
+            console.error(error);
+        }
     }
 
     // Handle Journey Steps

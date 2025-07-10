@@ -53,11 +53,16 @@ export namespace TSIDOModule {
 
   export const enum JourneyErrorType {
     notInitialized,
+    noActiveJourney,
     networkError,
     clientResponseNotValid,
     serverError,
     initializationError,
-    invalidCredentials
+    invalidCredentials,
+    expiredOTPPasscode,
+    maxResendReached,
+    missingRequestIdInApprovalPayload,
+    internalError
   }
 
   export interface SDKError {
@@ -148,7 +153,7 @@ class RNTSIdentityOrchestration implements TSIDOModule.API {
   }
 
   startMobileApproveJourney = (
-    payload: { [key: string]: any; },
+    payload: { [key: string]: string; },
     options?: TSIDOModule.StartJourneyOptions | null | undefined
   ): void => {
     TsIdentityOrchestration.startMobileApproveJourney(payload, options);
@@ -163,6 +168,7 @@ class RNTSIdentityOrchestration implements TSIDOModule.API {
 
   setResponseHandler = (responseHandler: TSIDOModule.ResponseHandler): void => {
     this.responseHandler = responseHandler;
+    eventEmitter.removeAllListeners(RNTSIdentityOrchestration.kResponseHandlerEventname);
     eventEmitter.addListener(
       RNTSIdentityOrchestration.kResponseHandlerEventname,
       this.onResponseReceived
