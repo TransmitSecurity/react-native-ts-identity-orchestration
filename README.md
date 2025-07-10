@@ -136,6 +136,32 @@ class AuthenticationService {
     }
 
     /**
+       Starts a Mobile Approve Journey to handle mobile approval flows.
+     - Parameters:
+       - payload: A key-value object containing approval data.
+       - options: Optional - provide additionalParams, flowId and encrypted (encryptionMode, true=full, false=none)
+       - Success and Error blocks to process responses
+    */
+    public startMobileApproveJourney = (
+        payload: { [key: string]: string; },
+        options: TSIDOModule.StartJourneyOptions | null,
+        onSuccess: ServiceSuccessCallback, 
+        onError: ServiceErrorCallback
+    ) => {
+
+        this.idoSDK.setResponseHandler({
+            success: (results: TSIDOModule.ServiceResponse) => {
+                onSuccess(results);
+            },
+            error: (error: TSIDOModule.JourneyErrorType) => {
+                onError(error);
+            }
+        });
+
+        this.idoSDK.startMobileApproveJourney(payload, options);
+    }
+
+    /**
       This method will submit client input to the Journey step to process.
       - Parameters:
         - clientResponseOptionId: The response option ID is one of the IDs provided in the clientResponseOptions.
