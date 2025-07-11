@@ -330,8 +330,7 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       TSIdoErrorCode.InvalidCredentials -> "invalidCredentials"
       TSIdoErrorCode.ExpiredOtpPasscode -> "expiredOtpPasscode"
 
-      TSIdoErrorCode.ExpiredValidationPasscode -> "invalidCredentials"
-      TSIdoErrorCode.ExpiredOtpPasscode -> "expiredValidationPasscode"
+      TSIdoErrorCode.ExpiredValidationPasscode -> "expiredValidationPasscode"
       TSIdoErrorCode.MaxResendReached -> "maxResendReached"
 
       TSIdoErrorCode.InternalError -> "internalError"
