@@ -46,6 +46,27 @@ class TsIdentityOrchestration: RCTEventEmitter {
       }
     }
   
+  @objc(startMobileApproveJourney:startJourneyOptions:withResolver:withRejecter:)
+  func startMobileApproveJourney(
+    _ payload: [String: Any],
+    startJourneyOptions: NSDictionary?,
+    resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+      
+      runBlockOnMain { [weak self] in
+        guard let self = self else { return }
+        
+        do {
+          try TSIdo.startMobileApproveJourney(
+            payload: payload,
+            options: self.convertStartJourneyOptions(startJourneyOptions)
+          )
+          resolve(true)
+        } catch {
+          reject(self.kTag, "Error during startJourney", error)
+        }
+      }
+    }
+  
   @objc(submitClientResponse:responseData:withResolver:withRejecter:)
   func submitClientResponse(
     _ clientResponseOptionId: String,
@@ -168,7 +189,7 @@ extension TsIdentityOrchestration: TSIdoDelegate {
   }
   
   private func convertServiceError(_ error: TSIdoJourneyError) -> [String: Any] {
-    return ["error": idoErrorCodeToString(error)]
+    return ["errorCode": idoErrorCodeToString(error)]
   }
   
   // MARK: Convertion Helpers
@@ -210,6 +231,9 @@ extension TsIdentityOrchestration: TSIdoDelegate {
     case .totpSigningTransaction: return "totpSigningTransaction"
     case .webAuthnTransactionSigning: return "webAuthnTransactionSigning"
     case .nativeBiometricsTransactionSigning: return "nativeBiometricsTransactionSigning"
+      
+    case .pinCodeRegistration: return "pinCodeRegistration"
+    case .pinCodeAuthentication: return "pinCodeAuthentication"
     @unknown default: return "@unknown"
     }
   }
@@ -217,13 +241,14 @@ extension TsIdentityOrchestration: TSIdoDelegate {
   private func idoErrorCodeToString(_ errorCode: IdentityOrchestration.TSIdoJourneyError) -> String {
     switch errorCode {
     case .notInitialized: return "notInitialized"
+    case .noActiveJourney: return "noActiveJourney"
     case .networkError: return "networkError"
     case .clientResponseNotValid: return "clientResponseNotValid"
     case .serverError(_): return "serverError"
     case .initializationError: return "initializationError"
     case .invalidCredentials: return "invalidCredentials"
-    case .noActiveJourney: return "noActiveJourney"
     case .expiredOTPPasscode: return "expiredOTPPasscode"
+    case .maxResendReached: return "maxResendReached"
     case .missingRequestIdInApprovalPayload: return "missingRequestIdInApprovalPayload"
     case .internalError(_): return "internalError"
     @unknown default: return "@unknown"

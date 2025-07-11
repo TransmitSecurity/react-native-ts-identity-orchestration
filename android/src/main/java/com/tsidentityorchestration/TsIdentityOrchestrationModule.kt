@@ -29,8 +29,7 @@ import org.json.JSONObject
 
 class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext), TSIdoCallback<TSIdoServiceResponse> {
-
-  private val idvStatusChangeEventName: String = "tsido_response_handler_event"
+    private val idvStatusChangeEventName: String = "tsido_response_handler_event"
 
   override fun getName(): String {
     return NAME
@@ -59,15 +58,39 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
     TSIdo.startJourney(journeyId,
       convertStartJourneyOptions(startJourneyOptions), object: TSIdoCallback<TSIdoServiceResponse>{
         override fun idoSuccess(result: TSIdoServiceResponse) {
-          //promise.resolve(true)
           reportResponseEvent(true, convertServiceResponse(result))
         }
 
         override fun idoError(error: TSIdoSdkError) {
-          //promise.reject("Error during startJourney", error.toString());
           reportResponseEvent(false, convertServiceError(error))
         }
       })
+    promise.resolve(true)
+  }
+
+  @ReactMethod
+  fun startMobileApproveJourney(payload: ReadableMap, startJourneyOptions: ReadableMap?, promise: Promise) {
+    try {
+      val stringPayload = readableMapToStringMap(payload)
+      val options = convertStartJourneyOptions(startJourneyOptions)
+
+      TSIdo.startMobileApproveJourney(
+        stringPayload,
+        options,
+        object : TSIdoCallback<TSIdoServiceResponse> {
+          override fun idoSuccess(result: TSIdoServiceResponse) {
+            reportResponseEvent(true, convertServiceResponse(result))
+          }
+
+          override fun idoError(error: TSIdoSdkError) {
+            reportResponseEvent(false, convertServiceError(error))
+          }
+        }
+      )
+    } catch (exception: Exception) {
+      reportResponseEvent(false, createExceptionMap(exception))
+    }
+
     promise.resolve(true)
   }
 
@@ -122,6 +145,31 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   }
 
   // region Private Methods
+
+  private fun createErrorPayload(error: TSIdoSdkError): WritableMap {
+    val map = Arguments.createMap()
+    map.putString("errorCode", error.errorCode.name.toCamelCase())
+    return map
+  }
+
+  private fun String.toCamelCase(): String {
+    return this.replaceFirstChar { it.lowercaseChar() }
+  }
+
+  private fun readableMapToStringMap(readableMap: ReadableMap): Map<String, String> {
+    val result = mutableMapOf<String, String>()
+    val iterator = readableMap.keySetIterator()
+    while (iterator.hasNextKey()) {
+      val key = iterator.nextKey()
+      val type = readableMap.getType(key)
+      if (type == ReadableType.String) {
+        result[key] = readableMap.getString(key) ?: ""
+      } else {
+        throw IllegalArgumentException("Expected string value for key '$key', but got $type")
+      }
+    }
+    return result
+  }
 
   private fun readableMapToNativeMap(readableMap: ReadableMap?): Map<String, Any?>? {
     if (readableMap == null) {
@@ -258,7 +306,13 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
 
   private fun convertServiceError(error: TSIdoSdkError): WritableMap {
     val map = Arguments.createMap()
-    map.putString("error", idoErrorCodeToString(error))
+    map.putString("errorCode", idoErrorCodeToString(error))
+    return map
+  }
+
+  private fun createExceptionMap(exception: Exception): WritableMap {
+    val map = Arguments.createMap()
+    map.putString("error", exception.toString());
     return map
   }
 
@@ -275,6 +329,10 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       TSIdoErrorCode.DeviceValidationError -> "deviceValidationError"
       TSIdoErrorCode.InvalidCredentials -> "invalidCredentials"
       TSIdoErrorCode.ExpiredOtpPasscode -> "expiredOtpPasscode"
+
+      TSIdoErrorCode.ExpiredValidationPasscode -> "expiredValidationPasscode"
+      TSIdoErrorCode.MaxResendReached -> "maxResendReached"
+
       TSIdoErrorCode.InternalError -> "internalError"
       else -> "@unknown"
     }
@@ -307,6 +365,8 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       TSIdoJourneyActionType.TransactionSigningTOTP.toString() -> "totpSigningTransaction"
       TSIdoJourneyActionType.TransactionSigningWebAuthn.toString() -> "webAuthnTransactionSigning"
       TSIdoJourneyActionType.TransactionSigningNativeBiometrics.toString() -> "nativeBiometricsTransactionSigning"
+      TSIdoJourneyActionType.PinCodeRegistration.toString() -> "pinCodeRegistration"
+      TSIdoJourneyActionType.PinCodeAuthentication.toString() -> "pinCodeAuthentication"
       else -> journeyStepId
     }
   }

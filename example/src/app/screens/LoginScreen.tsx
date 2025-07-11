@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, StatusBar, SafeAreaView, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import { type StackNavigationProp } from '@react-navigation/stack';
 import idoService from '../services/ido-service';
 import config from '../config';
@@ -52,28 +52,62 @@ class LoginScreen extends React.Component<LoginScreenProps, LoginScreenState> {
         console.error('Error during journey', results);
     }
 
-    private handleGenerateDebugPin = async () => {
-        const debugPin = await idoService.generateDebugPin();
-        if (debugPin) {
-            Alert.alert('Debug PIN', debugPin);
-        } else {
-            Alert.alert('Error', 'Error generating debug pin');
-        }
+    private handleStartMobileApproveJourney = () => {
+        console.log('Start Mobile Approve Journey button clicked');
+
+        idoService.startMobileApproveJourney(
+            this.handleJourneySuccess,
+            this.handleJourneyRejection
+        );
     }
 
     render() {
         return (
-            <View style={styles.container}>
-                <Text style={styles.titleLabel}>Welcome, please log in to your account</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Username"
-                    value={this.state.username}
-                    onChangeText={this.handleUsernameChange}
-                />
-                <Button title="Submit" onPress={this.handleSubmit} />
-                <Button title="Generate Debug PIN" onPress={this.handleGenerateDebugPin} />
-            </View>
+            <SafeAreaView style={styles.container}>
+                <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
+                <KeyboardAvoidingView 
+                    style={styles.keyboardAvoidingView}
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                    keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 50}
+                >
+                    <ScrollView 
+                        style={styles.scrollView}
+                        contentContainerStyle={styles.scrollContent}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
+                        <View style={styles.content}>
+                            <View style={styles.header}>
+                                <Text style={styles.title}>Welcome Back</Text>
+                                <Text style={styles.subtitle}>Please log in to your account</Text>
+                            </View>
+                            
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Username</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Enter your username"
+                                    placeholderTextColor="#8e8e93"
+                                    value={this.state.username}
+                                    onChangeText={this.handleUsernameChange}
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
+                            </View>
+
+                            <View style={styles.buttonContainer}>
+                                <TouchableOpacity style={styles.primaryButton} onPress={this.handleSubmit}>
+                                    <Text style={styles.primaryButtonText}>Submit</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity style={styles.secondaryButton} onPress={this.handleStartMobileApproveJourney}>
+                                    <Text style={styles.secondaryButtonText}>Start Mobile Approve Journey</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </SafeAreaView>
         );
     }
 }
@@ -81,20 +115,104 @@ class LoginScreen extends React.Component<LoginScreenProps, LoginScreenState> {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center',
+        backgroundColor: '#f8f9fa',
+    },
+    keyboardAvoidingView: {
+        flex: 1,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+        paddingBottom: 100,
+    },
+    content: {
+        flex: 1,
+        paddingHorizontal: 24,
+        paddingTop: 60,
         justifyContent: 'flex-start',
     },
-    titleLabel: {
-        fontSize: 24,
-        padding: 20,
+    header: {
+        marginBottom: 48,
+        alignItems: 'center',
+    },
+    title: {
+        fontSize: 32,
+        fontWeight: '700',
+        color: '#1a1a1a',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    subtitle: {
+        fontSize: 16,
+        color: '#6c757d',
+        textAlign: 'center',
+        lineHeight: 24,
+    },
+    inputContainer: {
+        marginBottom: 32,
+    },
+    inputLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#343a40',
+        marginBottom: 8,
     },
     input: {
-        width: '80%',
-        height: 40,
+        height: 56,
         borderWidth: 1,
-        borderColor: 'gray',
-        marginBottom: 20,
-        paddingHorizontal: 10,
+        borderColor: '#e9ecef',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        fontSize: 16,
+        backgroundColor: '#ffffff',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 1,
+        },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
+    },
+    buttonContainer: {
+        gap: 16,
+        paddingBottom: 60,
+    },
+    primaryButton: {
+        height: 56,
+        backgroundColor: '#007AFF',
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#007AFF',
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    primaryButtonText: {
+        color: '#ffffff',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+    secondaryButton: {
+        height: 56,
+        backgroundColor: '#ffffff',
+        borderWidth: 2,
+        borderColor: '#007AFF',
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    secondaryButtonText: {
+        color: '#007AFF',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });
 
