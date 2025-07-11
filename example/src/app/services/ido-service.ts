@@ -71,7 +71,6 @@ class IDOService {
                 this.handleJourneyActionResponse(results);
             },
             error: (error: TSIDOModule.JourneyErrorType) => {
-                console.error('Mobile approve journey error:', error);
                 this.handleJourneyActionError(error);
             }
         };
@@ -119,10 +118,7 @@ class IDOService {
     }
 
     private handleJourneyActionError = (error: TSIDOModule.JourneyErrorType) => {
-        console.log("ERROR ACTION")
-        if (error) {
-            console.error(error);
-        }
+        console.log("Error during journey action:", error || 'Unknown error');
     }
 
     // Handle Journey Steps

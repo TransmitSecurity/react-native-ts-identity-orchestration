@@ -58,12 +58,10 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
     TSIdo.startJourney(journeyId,
       convertStartJourneyOptions(startJourneyOptions), object: TSIdoCallback<TSIdoServiceResponse>{
         override fun idoSuccess(result: TSIdoServiceResponse) {
-          //promise.resolve(true)
           reportResponseEvent(true, convertServiceResponse(result))
         }
 
         override fun idoError(error: TSIdoSdkError) {
-          //promise.reject("Error during startJourney", error.toString());
           reportResponseEvent(false, convertServiceError(error))
         }
       })
@@ -82,18 +80,18 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
         object : TSIdoCallback<TSIdoServiceResponse> {
           override fun idoSuccess(result: TSIdoServiceResponse) {
             reportResponseEvent(true, convertServiceResponse(result))
-            promise.resolve(true)
           }
 
           override fun idoError(error: TSIdoSdkError) {
             reportResponseEvent(false, convertServiceError(error))
-            promise.reject("START_JOURNEY_ERROR", error.errorMessage, null)
           }
         }
       )
-    } catch (e: Exception) {
-      promise.reject("INVALID_PAYLOAD", e.message, e)
+    } catch (exception: Exception) {
+      reportResponseEvent(false, createExceptionMap(exception))
     }
+
+    promise.resolve(true)
   }
 
   @ReactMethod
@@ -148,7 +146,17 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
 
   // region Private Methods
 
-  fun readableMapToStringMap(readableMap: ReadableMap): Map<String, String> {
+  private fun createErrorPayload(error: TSIdoSdkError): WritableMap {
+    val map = Arguments.createMap()
+    map.putString("errorCode", error.errorCode.name.toCamelCase())
+    return map
+  }
+
+  private fun String.toCamelCase(): String {
+    return this.replaceFirstChar { it.lowercaseChar() }
+  }
+
+  private fun readableMapToStringMap(readableMap: ReadableMap): Map<String, String> {
     val result = mutableMapOf<String, String>()
     val iterator = readableMap.keySetIterator()
     while (iterator.hasNextKey()) {
@@ -298,7 +306,13 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
 
   private fun convertServiceError(error: TSIdoSdkError): WritableMap {
     val map = Arguments.createMap()
-    map.putString("error", idoErrorCodeToString(error))
+    map.putString("errorCode", idoErrorCodeToString(error))
+    return map
+  }
+
+  private fun createExceptionMap(exception: Exception): WritableMap {
+    val map = Arguments.createMap()
+    map.putString("error", exception.toString());
     return map
   }
 
