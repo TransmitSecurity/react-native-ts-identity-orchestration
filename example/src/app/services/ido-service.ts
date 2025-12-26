@@ -187,8 +187,7 @@ class IDOService {
             return;
         }
 
-        const data = results.data;
-        if (!data || results.errorData) {
+        if (results.errorData) {
             this.onJourneyRejectionError && this.onJourneyRejectionError(results);
             return;
         }
