@@ -111,7 +111,10 @@ class IDOService {
             case TSIDOModule.JourneyActionType.validateDeviceAction: console.log("validateDeviceAction"); break;
             case TSIDOModule.JourneyActionType.nativeBiometricsRegistration: console.log("nativeBiometricsRegistration"); break;
             case TSIDOModule.JourneyActionType.nativeBiometricsAuthenticaton: console.log("nativeBiometricsAuthenticaton"); break;
-            case TSIDOModule.JourneyActionType.emailOTPAuthentication: console.log("emailOTPAuthentication"); break;
+            
+            case TSIDOModule.JourneyActionType.emailOTPAuthentication: this.handleEmailOTPAuthentication(results); break;
+            case 'transmit_platform_email_otp_authentication': this.handleEmailOTPAuthentication(results); break;
+
             case TSIDOModule.JourneyActionType.smsOTPAuthentication: console.log("smsOTPAuthentication"); break;
             default: console.log("unknown journey step");
         }
@@ -174,6 +177,43 @@ class IDOService {
                 text: buttonText,
                 onPress: () => onContinue()
             }]);
+        }
+    }
+
+    private handleEmailOTPAuthentication = async (results: TSIDOModule.ServiceResponse) => {
+        console.log('Email OTP Authentication step:', results);
+
+        if (!results.data) {
+            console.error('Email OTP Authentication step has no data');
+            return;
+        }
+
+        const data = results.data;
+        if (!data || results.errorData) {
+            this.onJourneyRejectionError && this.onJourneyRejectionError(results);
+            return;
+        }
+
+        if (this.showScreen) {
+            const EmailOTPDialog = require('../ido/screens/EmailOTPDialog').default;
+            const React = require('react');
+            
+            const screen = React.createElement(EmailOTPDialog, {
+                data: {
+                    title: "Email OTP",
+                    text: "Please type the OTP code you received in your email",
+                    button_text: "Submit",
+                    email: ""
+                },
+                onSubmitOTP: (otp: string) => {
+                    this.idoSDK.submitClientResponse(
+                        TSIDOModule.ClientResponseOptionType.clientInput,
+                        { otp }
+                    );
+                }
+            });
+            
+            this.showScreen(screen, results);
         }
     }
 
