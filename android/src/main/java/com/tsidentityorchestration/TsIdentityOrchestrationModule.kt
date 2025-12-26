@@ -367,6 +367,8 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       TSIdoJourneyActionType.TransactionSigningNativeBiometrics.toString() -> "nativeBiometricsTransactionSigning"
       TSIdoJourneyActionType.PinCodeRegistration.toString() -> "pinCodeRegistration"
       TSIdoJourneyActionType.PinCodeAuthentication.toString() -> "pinCodeAuthentication"
+
+      "Transmit_platform_email_otp_authentication" -> "emailOTPAuthentication"
       else -> journeyStepId
     }
   }

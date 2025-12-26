@@ -1,4 +1,4 @@
 export default {
-    exampleJourneyId: 'f73e4706-26a5-4ac5-9ddb-7a444a7e90e0',
+    exampleJourneyId: '4fcd9e4d-464d-4518-a78d-dce857d0d851',
     mobileApproverJourneyId: '6fe93e4b-2e74-4115-8967-8fdcfefad0d1',
 }
