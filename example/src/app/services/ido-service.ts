@@ -113,7 +113,6 @@ class IDOService {
             case TSIDOModule.JourneyActionType.nativeBiometricsAuthenticaton: console.log("nativeBiometricsAuthenticaton"); break;
             
             case TSIDOModule.JourneyActionType.emailOTPAuthentication: this.handleEmailOTPAuthentication(results); break;
-            case 'transmit_platform_email_otp_authentication': this.handleEmailOTPAuthentication(results); break;
 
             case TSIDOModule.JourneyActionType.smsOTPAuthentication: console.log("smsOTPAuthentication"); break;
             default: console.log("unknown journey step");
