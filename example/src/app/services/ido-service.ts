@@ -208,7 +208,7 @@ class IDOService {
                 onSubmitOTP: (otp: string) => {
                     this.idoSDK.submitClientResponse(
                         TSIDOModule.ClientResponseOptionType.clientInput,
-                        { otp }
+                        { passcode: otp }
                     );
                 }
             });
