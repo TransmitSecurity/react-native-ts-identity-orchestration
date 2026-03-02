@@ -31,5 +31,14 @@ target 'TsIdentityOrchestrationExample' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    xcconfig_paths = Dir.glob("Pods/Target Support Files/**/*.xcconfig")
+    xcconfig_paths.each do |path|
+      text = File.read(path)
+      next unless text.include?("EXCLUDED_ARCHS[sdk=iphonesimulator*] = arm64")
+      text = text.gsub(/^EXCLUDED_ARCHS\[sdk=iphonesimulator\*\]\s*=\s*arm64\s*$/, "")
+      File.write(path, text)
+    end
   end
+  
 end
