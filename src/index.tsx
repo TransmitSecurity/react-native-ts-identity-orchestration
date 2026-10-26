@@ -51,23 +51,45 @@ export namespace TSIDOModule {
     smsOTPAuthentication = "smsOTPAuthentication"
   }
 
-  export const enum JourneyErrorType {
-    notInitialized,
-    noActiveJourney,
-    networkError,
-    clientResponseNotValid,
-    serverError,
-    initializationError,
-    invalidCredentials,
-    expiredOTPPasscode,
-    maxResendReached,
-    missingRequestIdInApprovalPayload,
-    internalError
+  export interface InitOptions {
+    serverPath: string;
+    resourceUri?: string | null;
+    pollingTimeout?: number | null;
+    locale?: string | null;
+    collectRiskData?: boolean | null;
+  }
+
+  export enum JourneyErrorType {
+    notInitialized = "notInitialized",
+    noActiveJourney = "noActiveJourney",
+    networkError = "networkError",
+    clientResponseNotValid = "clientResponseNotValid",
+    serverError = "serverError",
+    initializationError = "initializationError",
+    invalidCredentials = "invalidCredentials",
+    expiredOTPPasscode = "expiredOTPPasscode",
+    maxResendReached = "maxResendReached",
+    missingRequestIdInApprovalPayload = "missingRequestIdInApprovalPayload",
+    internalError = "internalError",
+    // Android only
+    invalidStateString = "invalidStateString",
+    deviceRegistrationError = "deviceRegistrationError",
+    deviceValidationError = "deviceValidationError",
+    expiredValidationPasscode = "expiredValidationPasscode",
+    idvCameraPermissionRequired = "idvCameraPermissionRequired",
+    idvSdkDisabled = "idvSdkDisabled",
+    idvSessionNotValid = "idvSessionNotValid",
+    idvInitializationError = "idvInitializationError",
+    idvNotInitialized = "idvNotInitialized",
+    idvCanceled = "idvCanceled",
+    idvInternalError = "idvInternalError",
+    idvNotAvailable = "idvNotAvailable",
+    unknown = "unknown"
   }
 
   export interface SDKError {
-    errorCode: TSIDOModule.JourneyErrorType
-    description: string;
+    errorCode: TSIDOModule.JourneyErrorType;
+    description?: string | null;
     data?: any | null;
   }
 
@@ -87,7 +109,7 @@ export namespace TSIDOModule {
 
   export interface ResponseHandler {
     success: (results: TSIDOModule.ServiceResponse) => void;
-    error: (results: TSIDOModule.JourneyErrorType) => void;
+    error: (error: TSIDOModule.SDKError) => void;
   }
 
   // Module API
@@ -98,6 +120,24 @@ export namespace TSIDOModule {
     Credentials are configured from TransmitSecurity.plist file (iOS) or strings.xml file (Android).
     */
     initializeSDK: () => Promise<boolean>;
+
+    /**
+      Initializes the SDK with an explicit client ID instead of the plist / strings.xml configuration.
+      - Parameters:
+        - clientId: Client ID from the Transmit Security Admin Console.
+        - options: Server path and optional settings.
+    */
+    initialize: (clientId: string, options: TSIDOModule.InitOptions) => Promise<boolean>;
+
+    /**
+      Enables or disables SDK logging.
+    */
+    setLoggingEnabled: (enabled: boolean) => Promise<boolean>;
+
+    /**
+      Registers the device push token (APNs on iOS, FCM on Android) with the SDK.
+    */
+    setPushToken: (token: string) => Promise<boolean>;
 
     /**
        Starts a Journey with a given id.
@@ -148,6 +188,18 @@ class RNTSIdentityOrchestration implements TSIDOModule.API {
     return await TsIdentityOrchestration.initializeSDK();
   }
 
+  initialize = async (clientId: string, options: TSIDOModule.InitOptions): Promise<boolean> => {
+    return await TsIdentityOrchestration.initialize(clientId, options);
+  }
+
+  setLoggingEnabled = async (enabled: boolean): Promise<boolean> => {
+    return await TsIdentityOrchestration.setLoggingEnabled(enabled);
+  }
+
+  setPushToken = async (token: string): Promise<boolean> => {
+    return await TsIdentityOrchestration.setPushToken(token);
+  }
+
   startJourney = (journeyId: string, options?: TSIDOModule.StartJourneyOptions | null | undefined): void => {
     TsIdentityOrchestration.startJourney(journeyId, options);
   }
@@ -192,7 +244,7 @@ class RNTSIdentityOrchestration implements TSIDOModule.API {
     if (success) {
       this.responseHandler?.success(additionalData);
     } else {
-      this.responseHandler?.error(additionalData.errorCode);
+      this.responseHandler?.error(additionalData as TSIDOModule.SDKError);
     }
   }
 }

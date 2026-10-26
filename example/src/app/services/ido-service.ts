@@ -47,7 +47,7 @@ class IDOService {
             success: (results: TSIDOModule.ServiceResponse) => {
                 this.handleJourneyActionResponse(results);
             },
-            error: (error: TSIDOModule.JourneyErrorType) => {
+            error: (error: TSIDOModule.SDKError) => {
                 console.error('Journey action error:', error);
                 this.handleJourneyActionError(error);
             }
@@ -70,7 +70,7 @@ class IDOService {
             success: (results: TSIDOModule.ServiceResponse) => {
                 this.handleJourneyActionResponse(results);
             },
-            error: (error: TSIDOModule.JourneyErrorType) => {
+            error: (error: TSIDOModule.SDKError) => {
                 this.handleJourneyActionError(error);
             }
         };
@@ -120,7 +120,7 @@ class IDOService {
         }
     }
 
-    private handleJourneyActionError = (error: TSIDOModule.JourneyErrorType) => {
+    private handleJourneyActionError = (error: TSIDOModule.SDKError) => {
         console.log("Error during journey action:", error || 'Unknown error');
     }
 

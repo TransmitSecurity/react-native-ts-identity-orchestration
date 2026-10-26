@@ -87,7 +87,7 @@ This comprehensive example will guide you through the process of integrating the
 import RNTSIdentityOrchestration, { TSIDOModule } from 'react-native-ts-identity-orchestration';
 
 export type ServiceSuccessCallback = (results: TSIDOModule.ServiceResponse) => void;
-export type ServiceErrorCallback = (results: TSIDOModule.JourneyErrorType) => void;
+export type ServiceErrorCallback = (error: TSIDOModule.SDKError) => void;
 
 class AuthenticationService {
 
@@ -97,13 +97,9 @@ class AuthenticationService {
     Creates a new Identity Orchestration SDK instance with your client context.
     Credentials are configured from TransmitSecurity.plist file (iOS) or manifest file (Android).
   */
-  public initializeSDK = (): void => {
+  public initializeSDK = async (): Promise<void> => {
         try {
-            if (Platform.OS === 'ios') {
-              this.idoSDK.initializeSDK();
-            } else {
-              // Initialize Android SDK on MainApplication (see details below)
-            }
+            await this.idoSDK.initializeSDK();
         } catch (error) {
             console.error('Error initializing IDO service', error);
         }
@@ -127,7 +123,7 @@ class AuthenticationService {
           success: (results: TSIDOModule.ServiceResponse) => {
               onSuccess(results);
           },
-          error: (error: TSIDOModule.JourneyErrorType) => {
+          error: (error: TSIDOModule.SDKError) => {
               onError(error);
           }
       });
@@ -153,7 +149,7 @@ class AuthenticationService {
             success: (results: TSIDOModule.ServiceResponse) => {
                 onSuccess(results);
             },
-            error: (error: TSIDOModule.JourneyErrorType) => {
+            error: (error: TSIDOModule.SDKError) => {
                 onError(error);
             }
         });
@@ -176,17 +172,76 @@ class AuthenticationService {
 }
 ```
 
-##### Initialize Android SDK
-The Android SDK requires to be initialized in your App's Main Application class. To do that, open your MainApplication.kt file and add the following to the bottom of the function onCreate()
+#### Initialization options
+
+There are two ways to initialize the SDK. Call one of them once, before starting a journey.
+
+**Option A: from the native configuration files.** `initializeSDK()` reads credentials from `TransmitSecurity.plist` (iOS) or `strings.xml` (Android), as described in [Native Project Configuration](#native-project-configuration). It works from JS on both platforms.
+
+```javascript
+await idoSDK.initializeSDK();
+```
+
+**Option B: with an explicit client ID.** `initialize(clientId, options)` doesn't need the plist or strings.xml credentials.
+
+```javascript
+await idoSDK.initialize('CLIENT_ID', {
+  serverPath: 'https://api.transmitsecurity.io/ido', // required
+  resourceUri: null,      // optional
+  pollingTimeout: null,   // optional
+  locale: null,           // optional
+  collectRiskData: false, // optional, defaults to false
+});
+```
+
+| Option | Type | Required | Description |
+|---|---|---|---|
+| `serverPath` | `string` | Yes | IDO service URL, for example `https://api.transmitsecurity.io/ido` (use `api.eu` / `api.ca` for EU / CA). |
+| `resourceUri` | `string` | No | Resource URI for the access token. |
+| `pollingTimeout` | `number` | No | Polling timeout for steps that wait on another device. |
+| `locale` | `string` | No | Locale for server-side texts. |
+| `collectRiskData` | `boolean` | No | Collect risk (DRS) data during journeys. |
+
+##### Initializing Android from MainApplication (optional)
+Apps can still initialize Android natively by adding this to the bottom of `onCreate()` in MainApplication.kt. If they do, a later JS `initializeSDK()` call does nothing, so the SDK isn't initialized twice.
 ```java
 TsIdentityOrchestrationModule.initializeAndroidSDK(this)
+```
+
+#### Start journey options
+
+```javascript
+idoSDK.startJourney('JOURNEY_ID', {
+  additionalParams: { key: 'value' }, // optional
+  flowId: null,                       // optional
+  encrypted: false,                   // optional, true = full encryption, false = none
+});
+```
+
+All fields are optional, and `options` can be omitted entirely.
+
+#### Logging
+
+Turn SDK logging on or off. It behaves the same on both platforms.
+
+```javascript
+await idoSDK.setLoggingEnabled(true);  // enable
+await idoSDK.setLoggingEnabled(false); // disable
+```
+
+#### Push token
+
+Register the device push token with the SDK: the APNs token (as a string) on iOS, the FCM token on Android.
+
+```javascript
+await idoSDK.setPushToken(token);
 ```
 
 ### 2. Handling responses
 
 To handle responses and errors coming from the server or the native SDK, you must set a response handler by calling `this.idoSDK.setResponseHandler(handler)` before starting a journey.
 
-Your response handler should provide two functions: success: (results: TSIDOModule.ServiceResponse) and error: (error: TSIDOModule.JourneyErrorType). The success handler can be implemented as follows:
+Your response handler should provide two functions: success: (results: TSIDOModule.ServiceResponse) and error: (error: TSIDOModule.SDKError). The success handler can be implemented as follows:
 
 ```javascript
 private handleJourneyServiceResponse = (results: TSIDOModule.ServiceResponse) => {
@@ -225,6 +280,29 @@ export interface ServiceResponse {
 }
 ```
 
+#### Handling errors
+
+The `error` handler receives a `TSIDOModule.SDKError` object:
+
+```javascript
+export interface SDKError {
+  errorCode: TSIDOModule.JourneyErrorType; // string enum, same values on iOS and Android
+  description?: string | null;
+  data?: any | null;
+}
+
+error: (error: TSIDOModule.SDKError) => {
+  if (error.errorCode === TSIDOModule.JourneyErrorType.expiredOTPPasscode) {
+    // ask the user to resend the code
+  }
+  console.error(error.errorCode, error.description);
+}
+```
+
+`JourneyErrorType` values: `notInitialized`, `noActiveJourney`, `networkError`, `clientResponseNotValid`, `serverError`, `initializationError`, `invalidCredentials`, `expiredOTPPasscode`, `maxResendReached`, `missingRequestIdInApprovalPayload`, `internalError` and `unknown`.
+
+Codes reported only on Android: `invalidStateString`, `deviceRegistrationError`, `deviceValidationError`, `expiredValidationPasscode`, plus the identity verification codes `idvCameraPermissionRequired`, `idvSdkDisabled`, `idvSessionNotValid`, `idvInitializationError`, `idvNotInitialized`, `idvCanceled`, `idvInternalError` and `idvNotAvailable`.
+
 #### Collecting User Input and Submitting to the Server
 
 At this point, you may need to collect user input and submit it to the server using the module. You can do this using the `submitClientResponse(clientResponseOptionId, data)` API. 
@@ -244,6 +322,7 @@ For example, handling an `information` step, which doesn't require any additiona
    When the user presses the button to continue, invoke the module with `submitClientResponse`, providing `clientInput` for `clientResponseOptionId`:
    ```javascript
    idoSDK.submitClientResponse(TSIDOModule.ClientResponseOptionType.clientInput);
+   ```
 
 More complex cases, such as `Form`, may require additional data to be resolved. You can handle these cases as follows:
 
@@ -255,8 +334,21 @@ More complex cases, such as `Form`, may require additional data to be resolved. 
        TSIDOModule.ClientResponseOptionType.clientInput, 
        { externalUserId: userId, userPassword: password }
    );
+   ```
 
-   ## Author
+To follow a custom branch configured in the journey (for example, a "Forgot password" button), pass the option's `id` from `clientResponseOptions` as the `clientResponseOptionId`. Custom options keep their own id as `type`, the same on both platforms.
+
+## Migrating from 0.1.x
+
+- **Error handler:** `ResponseHandler.error` now receives a `TSIDOModule.SDKError` object (`errorCode`, `description`, `data`) instead of the bare error code. Update `error: (error: TSIDOModule.JourneyErrorType) => ...` to `error: (error: TSIDOModule.SDKError) => ...` and read `error.errorCode`.
+- **Error codes:** `TSIDOModule.JourneyErrorType` is now a string enum. Comparisons like `error.errorCode === TSIDOModule.JourneyErrorType.networkError` now work as expected. Android's `expiredOtpPasscode` is now `expiredOTPPasscode`, and unrecognized codes are reported as `unknown` instead of `@unknown`.
+- **Android initialization:** `initializeSDK()` now works from JS on Android. Existing `initializeAndroidSDK(this)` calls in MainApplication keep working.
+
+## Release Notes
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+## Author
 
 Transmit Security, https://github.com/TransmitSecurity
 

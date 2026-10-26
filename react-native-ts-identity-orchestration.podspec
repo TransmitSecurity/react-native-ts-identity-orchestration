@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.authors      = package["author"]
 
   s.platforms    = { :ios => 15.0 }
-  s.source       = { :git => "https://github.com/TransmitSecurity/react-native-ts-identity-orchestration.git.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/TransmitSecurity/react-native-ts-identity-orchestration.git", :tag => "#{s.version}" }
 
   s.dependency 'IdentityOrchestration', '1.2.3'
   s.source_files = "ios/**/*.{h,m,mm,swift}"

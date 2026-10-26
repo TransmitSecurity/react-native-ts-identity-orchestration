@@ -23,6 +23,8 @@ import com.transmit.idosdk.TSIdoErrorCode
 import com.transmit.idosdk.TSIdoJourneyActionType
 import com.transmit.idosdk.TSIdoClientResponseOption
 import com.transmit.idosdk.TSIdoEncryptionMode
+import com.transmit.idosdk.TSIdoInitOptions
+import com.transmit.idosdk.TSPushTokenType
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -47,10 +49,54 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
 
   @ReactMethod
   fun initializeSDK(promise: Promise) {
-    promise.reject(
-      "TSIDOModule",
-      "On Android, please call the initializeAndroidSDK function from your Application class"
-    )
+    try {
+      if (!isInitialized) {
+        initializeAndroidSDK(reactContext.applicationContext)
+      }
+      promise.resolve(true)
+    } catch (e: Exception) {
+      promise.reject("TSIDOModule", "Error during initializeSDK", e)
+    }
+  }
+
+  @ReactMethod
+  fun initialize(clientId: String, initOptions: ReadableMap, promise: Promise) {
+    val serverPath = optString(initOptions, "serverPath")
+    if (serverPath == null) {
+      promise.reject("TSIDOModule", "initialize requires options.serverPath")
+      return
+    }
+
+    try {
+      val options = TSIdoInitOptions(
+        serverPath,
+        optInt(initOptions, "pollingTimeout"),
+        optString(initOptions, "resourceUri"),
+        optString(initOptions, "locale"),
+        optBoolean(initOptions, "collectRiskData") ?: false
+      )
+      TSIdo.initializeSDK(reactContext.applicationContext, clientId, options)
+      isInitialized = true
+      promise.resolve(true)
+    } catch (e: Exception) {
+      promise.reject("TSIDOModule", "Error during initialize", e)
+    }
+  }
+
+  @ReactMethod
+  fun setLoggingEnabled(enabled: Boolean, promise: Promise) {
+    TSIdo.setLoggingEnabled(enabled)
+    promise.resolve(true)
+  }
+
+  @ReactMethod
+  fun setPushToken(token: String, promise: Promise) {
+    try {
+      TSIdo.setPushToken(token, TSPushTokenType.Fcm)
+      promise.resolve(true)
+    } catch (e: Exception) {
+      promise.reject("TSIDOModule", "Error during setPushToken", e)
+    }
   }
 
   @ReactMethod
@@ -102,20 +148,13 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
     }
 
     val responseToOptionId = convertResponseOptionId(clientResponseOptionId)
-    var optionId = responseToOptionId.type
-    var nativeMap = readableMapToNativeMap(responseData)
-
-    if (responseToOptionId == TSIdoClientResponseOptionType.Custom) {
-      optionId = clientResponseOptionId
-      val mutableMap = nativeMap?.toMutableMap()
-
-      if (mutableMap !== null) {
-        mutableMap["escape_id"] = optionId
-        mutableMap["escape_params"] = mutableMap
-      }
+    val optionId = if (responseToOptionId == TSIdoClientResponseOptionType.Custom) {
+      clientResponseOptionId
+    } else {
+      responseToOptionId.type
     }
 
-    TSIdo.submitClientResponse(optionId, nativeMap,
+    TSIdo.submitClientResponse(optionId, readableMapToNativeMap(responseData),
       object: TSIdoCallback<TSIdoServiceResponse>{
 
         override fun idoSuccess(result: TSIdoServiceResponse) {
@@ -146,15 +185,14 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
 
   // region Private Methods
 
-  private fun createErrorPayload(error: TSIdoSdkError): WritableMap {
-    val map = Arguments.createMap()
-    map.putString("errorCode", error.errorCode.name.toCamelCase())
-    return map
-  }
+  private fun optString(map: ReadableMap, key: String): String? =
+    if (map.hasKey(key) && !map.isNull(key)) map.getString(key) else null
 
-  private fun String.toCamelCase(): String {
-    return this.replaceFirstChar { it.lowercaseChar() }
-  }
+  private fun optInt(map: ReadableMap, key: String): Int? =
+    if (map.hasKey(key) && !map.isNull(key)) map.getInt(key) else null
+
+  private fun optBoolean(map: ReadableMap, key: String): Boolean? =
+    if (map.hasKey(key) && !map.isNull(key)) map.getBoolean(key) else null
 
   private fun readableMapToStringMap(readableMap: ReadableMap): Map<String, String> {
     val result = mutableMapOf<String, String>()
@@ -219,16 +257,16 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   private fun convertStartJourneyOptions(rawOptions: ReadableMap?):  TSIdoStartJourneyOptions? {
     if (rawOptions == null) return null
 
-    val hashMap = rawOptions.getMap("additionalParams")?.toHashMap()
-    val encryptionMode = parseEncryptionMode(rawOptions.getBoolean("encrypted"))
+    val additionalParams =
+      if (rawOptions.hasKey("additionalParams") && !rawOptions.isNull("additionalParams")) {
+        rawOptions.getMap("additionalParams")?.toHashMap()
+      } else null
 
-    val options =  TSIdoStartJourneyOptions(
-      additionalParams = hashMap,
-      flowId = rawOptions.getString("flowId"),
-      encryptionMode = encryptionMode
+    return TSIdoStartJourneyOptions(
+      additionalParams = additionalParams,
+      flowId = optString(rawOptions, "flowId"),
+      encryptionMode = parseEncryptionMode(optBoolean(rawOptions, "encrypted"))
     )
-
-    return options
   }
 
   private fun convertResponseOptionId(rawResponseOptionId: String): TSIdoClientResponseOptionType {
@@ -307,17 +345,22 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   private fun convertServiceError(error: TSIdoSdkError): WritableMap {
     val map = Arguments.createMap()
     map.putString("errorCode", idoErrorCodeToString(error))
+    map.putString("description", error.errorMessage)
+    map.putString("data", error.throwable?.message)
     return map
   }
 
   private fun createExceptionMap(exception: Exception): WritableMap {
     val map = Arguments.createMap()
-    map.putString("error", exception.toString());
+    map.putString("errorCode", "internalError")
+    map.putString("description", exception.message ?: exception.toString())
+    map.putNull("data")
     return map
   }
 
   private fun idoErrorCodeToString(errorData: TSIdoSdkError): String {
     return when (errorData.errorCode) {
+      TSIdoErrorCode.InvalidInitializationOptions -> "initializationError"
       TSIdoErrorCode.NotInitialized -> "notInitialized"
       TSIdoErrorCode.NoActiveJourney -> "noActiveJourney"
       TSIdoErrorCode.NetworkError -> "networkError"
@@ -328,13 +371,18 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
       TSIdoErrorCode.DeviceRegistrationError -> "deviceRegistrationError"
       TSIdoErrorCode.DeviceValidationError -> "deviceValidationError"
       TSIdoErrorCode.InvalidCredentials -> "invalidCredentials"
-      TSIdoErrorCode.ExpiredOtpPasscode -> "expiredOtpPasscode"
-
+      TSIdoErrorCode.ExpiredOtpPasscode -> "expiredOTPPasscode"
       TSIdoErrorCode.ExpiredValidationPasscode -> "expiredValidationPasscode"
       TSIdoErrorCode.MaxResendReached -> "maxResendReached"
-
-      TSIdoErrorCode.InternalError -> "internalError"
-      else -> "@unknown"
+      TSIdoErrorCode.IdvCameraPermissionRequired -> "idvCameraPermissionRequired"
+      TSIdoErrorCode.IdvSdkDisabled -> "idvSdkDisabled"
+      TSIdoErrorCode.IdvSessionNotValid -> "idvSessionNotValid"
+      TSIdoErrorCode.IdvInitializationError -> "idvInitializationError"
+      TSIdoErrorCode.IdvNotInitialized -> "idvNotInitialized"
+      TSIdoErrorCode.IdvCanceled -> "idvCanceled"
+      TSIdoErrorCode.IdvInternalError -> "idvInternalError"
+      TSIdoErrorCode.IdvNotAvailable -> "idvNotAvailable"
+      else -> "unknown"
     }
   }
 
@@ -382,7 +430,7 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
 
     for ((key, value) in responseOptions) {
       var option: WritableMap = Arguments.createMap()
-      option.putString("type", responseOptionTypeToString(value.type))
+      option.putString("type", responseOptionTypeToString(value))
       option.putString("id", value.id)
       option.putString("label", value.label)
 
@@ -392,13 +440,13 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
     return jsOptions
   }
 
-  private fun responseOptionTypeToString(optionType: TSIdoClientResponseOptionType): String {
-    return when (optionType) {
+  private fun responseOptionTypeToString(option: TSIdoClientResponseOption): String {
+    return when (option.type) {
       TSIdoClientResponseOptionType.ClientInput -> "clientInput"
       TSIdoClientResponseOptionType.Cancel -> "cancel"
       TSIdoClientResponseOptionType.Fail -> "fail"
       TSIdoClientResponseOptionType.Resend -> "resend"
-      TSIdoClientResponseOptionType.Custom -> optionType.toString()
+      TSIdoClientResponseOptionType.Custom -> option.id
       else -> "unknown"
     }
   }
@@ -408,8 +456,12 @@ class TsIdentityOrchestrationModule(private val reactContext: ReactApplicationCo
   companion object {
     const val NAME = "TsIdentityOrchestration"
 
+    @Volatile
+    private var isInitialized = false
+
     fun initializeAndroidSDK(context: Context) {
       TSIdo.initializeSDK(context)
+      isInitialized = true
     }
   }
 

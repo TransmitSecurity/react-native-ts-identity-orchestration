@@ -25,6 +25,64 @@ class TsIdentityOrchestration: RCTEventEmitter {
       }
     }
   
+  @objc(initialize:initOptions:withResolver:withRejecter:)
+  func initialize(
+    _ clientId: String,
+    initOptions: NSDictionary,
+    resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+
+      runBlockOnMain { [weak self] in
+        guard let self = self else { return }
+
+        guard let serverPath = initOptions["serverPath"] as? String else {
+          reject(self.kTag, "initialize requires options.serverPath", nil)
+          return
+        }
+
+        let options = TSIdoInitJourneyOptions(
+          serverPath: serverPath,
+          resource: initOptions["resourceUri"] as? String,
+          pollingTimeout: (initOptions["pollingTimeout"] as? NSNumber)?.intValue,
+          locale: initOptions["locale"] as? String,
+          collectRiskData: initOptions["collectRiskData"] as? Bool ?? false
+        )
+
+        do {
+          try TSIdo.initialize(clientId: clientId, options: options)
+          TSIdo.delegate = self
+          resolve(true)
+        } catch {
+          reject(self.kTag, "Error during initialize", error)
+        }
+      }
+    }
+
+  @objc(setLoggingEnabled:withResolver:withRejecter:)
+  func setLoggingEnabled(
+    _ enabled: Bool,
+    resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+
+      TSIdo.setLogLevel(enabled ? .verbose : .off)
+      resolve(true)
+    }
+
+  @objc(setPushToken:withResolver:withRejecter:)
+  func setPushToken(
+    _ token: String,
+    resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+
+      runBlockOnMain { [weak self] in
+        guard let self = self else { return }
+
+        do {
+          try TSIdo.setPushToken(token)
+          resolve(true)
+        } catch {
+          reject(self.kTag, "Error during setPushToken", error)
+        }
+      }
+    }
+
   @objc(startJourney:startJourneyOptions:withResolver:withRejecter:)
   func startJourney(
     _ journeyId: String,
@@ -75,11 +133,7 @@ class TsIdentityOrchestration: RCTEventEmitter {
       
       runBlockOnMain { [weak self] in
         guard let self = self else { return }
-        
-        let testing = self.convertResponseOptionId(clientResponseOptionId)
-        
-        print("GOT THE TEST: \(testing)")
-        
+
         do {
             try TSIdo.submitClientResponse(
                 clientResponseOptionId: self.convertResponseOptionId(clientResponseOptionId),
@@ -192,8 +246,19 @@ extension TsIdentityOrchestration: TSIdoDelegate {
     return jsResponse
   }
   
-  private func convertServiceError(_ error: TSIdoJourneyError) -> [String: Any] {
-    return ["errorCode": idoErrorCodeToString(error)]
+  private func convertServiceError(_ error: TSIdoJourneyError) -> [String: Any?] {
+    let description: String
+    switch error {
+    case .serverError(let underlying): description = underlying?.localizedDescription ?? "Server error"
+    case .internalError(let idoError): description = String(describing: idoError)
+    default: description = String(describing: error)
+    }
+
+    return [
+      "errorCode": idoErrorCodeToString(error),
+      "description": description,
+      "data": nil
+    ]
   }
   
   // MARK: Convertion Helpers
@@ -255,7 +320,7 @@ extension TsIdentityOrchestration: TSIdoDelegate {
     case .maxResendReached: return "maxResendReached"
     case .missingRequestIdInApprovalPayload: return "missingRequestIdInApprovalPayload"
     case .internalError(_): return "internalError"
-    @unknown default: return "@unknown"
+    @unknown default: return "unknown"
     }
   }
   
