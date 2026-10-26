@@ -76,6 +76,10 @@ class TsIdentityOrchestration: RCTEventEmitter {
       runBlockOnMain { [weak self] in
         guard let self = self else { return }
         
+        let testing = self.convertResponseOptionId(clientResponseOptionId)
+        
+        print("GOT THE TEST: \(testing)")
+        
         do {
             try TSIdo.submitClientResponse(
                 clientResponseOptionId: self.convertResponseOptionId(clientResponseOptionId),

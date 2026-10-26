@@ -115,6 +115,7 @@ class IDOService {
             case TSIDOModule.JourneyActionType.emailOTPAuthentication: this.handleEmailOTPAuthentication(results); break;
 
             case TSIDOModule.JourneyActionType.smsOTPAuthentication: console.log("smsOTPAuthentication"); break;
+            case "get_info": this.handleGetInformationScreen(results); break;
             default: console.log("unknown journey step");
         }
     }
@@ -176,6 +177,80 @@ class IDOService {
                 text: buttonText,
                 onPress: () => onContinue()
             }]);
+        }
+    }
+
+    private handleGetInformationScreen = async (results: TSIDOModule.ServiceResponse) => {
+        if (this.showScreen) {
+            // Dynamic import to avoid circular dependencies
+            const React = require('react');
+            const { View, Text, TouchableOpacity, StyleSheet } = require('react-native');
+
+            // Inline component for the information screen using React Native primitives
+            const InformationScreen = ({ onSubmit, onCancel }: { onSubmit: () => void, onCancel: () => void }) =>
+                React.createElement(View, { style: styles.container },
+                    React.createElement(Text, { style: styles.text }, 'Give me some information'),
+                    React.createElement(View, { style: styles.buttonRow },
+                        React.createElement(TouchableOpacity, { onPress: onSubmit, style: styles.button },
+                            React.createElement(Text, { style: styles.buttonText }, 'Submit')
+                        ),
+                        React.createElement(TouchableOpacity, { onPress: onCancel, style: styles.button },
+                            React.createElement(Text, { style: styles.buttonText }, 'Cancel')
+                        )
+                    )
+                );
+
+            const handleSubmit = () => {
+                this.idoSDK.submitClientResponse(
+                    TSIDOModule.ClientResponseOptionType.clientInput,
+                    { userEmail: 'some@email.com', userPassword: "some password" }
+                );
+            };
+            const handleCancel = () => {                
+                this.idoSDK.submitClientResponse(
+                    "Cancel"
+                );
+            };
+
+            // Inline styles for the screen
+            const styles = StyleSheet.create({
+                container: {
+                    flex: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 24,
+                },
+                text: {
+                    fontSize: 18,
+                    marginBottom: 24,
+                },
+                buttonRow: {
+                    flexDirection: 'row',
+                },
+                button: {
+                    backgroundColor: '#007AFF',
+                    paddingVertical: 10,
+                    paddingHorizontal: 20,
+                    borderRadius: 6,
+                    marginHorizontal: 8,
+                },
+                buttonText: {
+                    color: '#fff',
+                    fontSize: 16,
+                },
+            });
+
+            const screen = React.createElement(InformationScreen, {
+                onSubmit: handleSubmit,
+                onCancel: handleCancel
+            });
+            this.showScreen(screen, results);
+        } else {
+            // Fallback to Alert for backward compatibility
+            Alert.alert('Give me some information', '', [
+                { text: 'Submit', onPress: () => {} },
+                { text: 'Cancel', onPress: () => {} }
+            ]);
         }
     }
 
